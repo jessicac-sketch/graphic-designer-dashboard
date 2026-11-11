@@ -1,0 +1,43 @@
+<button
+    #trigger
+    type="button"
+    class="filter-menu"
+    [class.filter-menu--filtering]="isFiltering()"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="isOpen()"
+    [disabled]="disabled()"
+    (click)="menu.toggle($event, trigger)">
+    <span class="filter-menu__label">{{ label() }}</span>
+    <span class="filter-menu__value">{{ selected()?.label ?? placeholder() }}</span>
+    <i
+        class="filter-menu__chevron fa-sharp fa-regular fa-chevron-down"
+        [class.filter-menu__chevron--open]="isOpen()"
+        aria-hidden="true"></i>
+</button>
+
+<ntv-popover
+    #menu
+    trigger="click"
+    placement="bottom-start"
+    minWidth="220px"
+    [arrow]="false"
+    (shown)="isOpen.set(true)"
+    (hidden)="isOpen.set(false)">
+    <div class="filter-menu__panel" role="menu" [attr.aria-label]="label()">
+        @for (option of options(); track option.value) {
+            <button
+                type="button"
+                class="filter-menu__item"
+                [class.filter-menu__item--active]="option.value === value()"
+                role="menuitemradio"
+                [attr.aria-checked]="option.value === value()"
+                (click)="select(option.value)">
+                <i
+                    class="filter-menu__icon fa-sharp fa-regular fa-{{ option.icon }}"
+                    aria-hidden="true"></i>
+                <span class="filter-menu__name">{{ option.label }}</span>
+                <span class="filter-menu__count">{{ option.count }}</span>
+            </button>
+        }
+    </div>
+</ntv-popover>

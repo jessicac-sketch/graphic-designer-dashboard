@@ -1,0 +1,14 @@
+@if (rangeService.notice(); as notice) {
+    <p class="range-notice" role="status" data-testid="range-notice">
+        <span class="range-notice__label">Heads up</span>
+        <span>{{ notice }}</span>
+        <button
+            type="button"
+            class="range-notice__dismiss"
+            aria-label="Dismiss notice"
+            data-testid="range-notice-dismiss"
+            (click)="rangeService.notice.set(null)">
+            &times;
+        </button>
+    </p>
+}

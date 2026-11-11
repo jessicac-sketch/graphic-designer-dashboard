@@ -1,0 +1,44 @@
+/**
+ * App theme tokens.
+ *
+ * The app runs in dark mode only: <html class="dark"> switches the component-pantry
+ * components to their dark styles, and these variables theme our own layouts.
+ * Tailwind exposes them as `surface-*`, `brand-*` and `content-*` colors (tailwind.config.js),
+ * so components use e.g. `@apply bg-surface-raised text-content-primary`.
+ *
+ * Colors follow the NTV360 website (deep navy surfaces, orange accent, magenta-to-red
+ * gradient buttons); pantry components are re-themed to match in _pantry-dark-fixes.scss.
+ */
+:root {
+    color-scheme: dark;
+
+    /* Typography (applied app-wide in _typography.scss): DM Sans, with DM Mono for small uppercase labels */
+    --app-font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    --app-font-mono: 'DM Mono', ui-monospace, monospace;
+
+    /* Surfaces: page → raised (cards, header) → borders — deep navy, from the NTV360 website */
+    --app-surface-base: #01131f;
+    --app-surface-raised: #071f2b;
+    --app-surface-border: #233b46;
+    --app-surface-hover: rgba(255, 255, 255, 0.04);
+
+    /* Form fields (inputs, selects, unchecked checkboxes) */
+    --app-field-bg: #031b25;
+    --app-field-border: #3a525a;
+
+    /* Brand accent: NTV360 orange, used sparingly */
+    --app-brand: #f17f28;
+    --app-brand-strong: #f59a52;
+    --app-brand-soft: rgba(241, 127, 40, 0.12);
+    --app-brand-gradient: linear-gradient(90deg, #a40556 0%, #c60539 45%, #e90912 100%);
+
+    /* Status: reserved for health/state, always paired with an icon or label */
+    --app-status-good: #4ade80;
+    --app-status-warn: #f17f28;
+    --app-status-crit: #f87171;
+
+    /* Text */
+    --app-content-primary: #f5f8f9;
+    --app-content-secondary: #c3ccd0;
+    --app-content-muted: #7d8c94;
+}

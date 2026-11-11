@@ -1,0 +1,245 @@
+<div class="page mini-library">
+    <app-page-header
+        eyebrow="Library"
+        title="Mini-Library"
+        subtitle="One searchable home for creative assets"
+        [preview]="true">
+        <ntv-button
+            size="xl"
+            [shadow]="false"
+            [disabled]="!taxonomy()"
+            data-testid="mini-library-add"
+            (buttonClick)="isAdding.set(true)">
+            <span class="mini-library__add">
+                <i class="fa-sharp fa-regular fa-cloud-arrow-up" aria-hidden="true"></i>
+                Add assets
+            </span>
+        </ntv-button>
+    </app-page-header>
+
+    @if (isAdding() && taxonomy(); as taxonomy) {
+        <app-asset-upload
+            [taxonomy]="taxonomy"
+            [defaultCategoryId]="categoryId()"
+            [defaultSubcategoryId]="subcategoryId() === all ? null : subcategoryId()"
+            [defaultTopicId]="topicId() === all ? null : topicId()"
+            (saved)="onAssetsSaved($event)"
+            (closed)="isAdding.set(false)" />
+    }
+
+    <ntv-card [config]="cardConfig" class="mini-library__card">
+        <!-- Categories -->
+        @if (taxonomy() === null) {
+            <p class="mini-library__notice">
+                {{ taxonomyError() }}
+                <button type="button" class="mini-library__retry" (click)="retry()">Retry</button>
+            </p>
+        } @else if (categoryTabs().length) {
+            <ntv-tabs
+                class="mini-library__tabs"
+                [tabs]="categoryTabs()"
+                [activeIndex]="categoryIndex()"
+                (tabChange)="selectCategoryAt($event)" />
+        }
+
+        <!-- Filters: search, the category's own subcategory / topic filters, format, order,
+             layout -->
+        <div class="mini-library__filters">
+            <ntv-input
+                class="mini-library__search"
+                placeholder="Search title or tag…"
+                [formControl]="searchControl"
+                [clearable]="true"
+                [nativeAutocomplete]="false"
+                data-testid="mini-library-search">
+                <i
+                    left-icon
+                    class="mini-library__search-icon fa-sharp fa-regular fa-magnifying-glass"
+                    aria-hidden="true"></i>
+            </ntv-input>
+
+            @if (category(); as category) {
+                @if (subcategoryOptions().length) {
+                    <app-filter-menu
+                        [label]="category.subcategoryLabel ?? 'Group'"
+                        [options]="subcategoryOptions()"
+                        [value]="subcategoryId()"
+                        (valueChange)="selectSubcategory($event)" />
+                }
+                <!-- Only when the picked entry is split further, e.g. Sport under Extreme Sports -->
+                @if (subcategory(); as subcategory) {
+                    @if (topicOptions().length) {
+                        <app-filter-menu
+                            [label]="subcategory.topicLabel ?? 'Topic'"
+                            [options]="topicOptions()"
+                            [value]="topicId()"
+                            (valueChange)="topicId.set($event)" />
+                    }
+                }
+            }
+
+            <app-filter-menu
+                label="File type"
+                [options]="fileTypeOptions()"
+                [value]="fileType()"
+                (valueChange)="fileType.set($event)" />
+
+            <div class="mini-library__controls">
+                <app-sort-control
+                    label="Sort assets"
+                    [options]="sortOptions"
+                    [value]="sort()"
+                    (valueChange)="sort.set($event)"
+                    [direction]="sortDirection()"
+                    (directionChange)="sortDirection.set($event)" />
+                <app-sort-control
+                    label="Layout"
+                    icon="table-cells-large"
+                    [options]="viewOptions"
+                    [value]="view()"
+                    (valueChange)="view.set($event)" />
+            </div>
+        </div>
+
+        <!-- Where we are, and how many assets match -->
+        <p class="mini-library__breadcrumb" aria-label="Current folder">
+            @for (part of breadcrumb(); track $index; let last = $last) {
+                <span [class.mini-library__breadcrumb-current]="last">{{ part }}</span>
+                @if (!last) {
+                    <i
+                        class="mini-library__breadcrumb-separator fa-sharp fa-regular fa-chevron-right"
+                        aria-hidden="true"></i>
+                }
+            }
+            @if (list(); as list) {
+                <span class="mini-library__total">{{ list.assets.length }} assets</span>
+            }
+        </p>
+
+        @if (list() === undefined) {
+            <div class="library-grid" aria-hidden="true">
+                @for (placeholder of skeletonPlaceholders; track placeholder) {
+                    <div class="asset-card asset-card--skeleton">
+                        <div class="asset-card__thumbnail">
+                            <ntv-skeleton
+                                class="asset-card__skeleton"
+                                variant="custom"
+                                width="100%"
+                                height="100%" />
+                        </div>
+                        <div class="asset-card__body">
+                            <ntv-skeleton
+                                class="asset-card__skeleton"
+                                variant="custom"
+                                width="70%"
+                                height="15px" />
+                            <ntv-skeleton
+                                class="asset-card__skeleton"
+                                variant="custom"
+                                width="85%"
+                                height="12px" />
+                        </div>
+                    </div>
+                }
+            </div>
+        } @else if (list() === null) {
+            <div class="mini-library__message mini-library__message--error">
+                <p>{{ listError() }}</p>
+                <button type="button" class="mini-library__retry" (click)="retry()">Retry</button>
+            </div>
+        } @else if (list()!.assets.length === 0) {
+            <div class="mini-library__message">
+                <p>No assets here yet. Upload some with "Add assets", or change the filters.</p>
+            </div>
+        } @else if (view() === 'grid') {
+            <div class="library-grid">
+                @for (asset of list()!.assets; track asset.id) {
+                    <article class="asset-card" data-testid="mini-library-card">
+                        <div class="asset-card__thumbnail">
+                            @if (asset.fileType === 'mp4') {
+                                <!-- First frame as the thumbnail: only the metadata loads -->
+                                <video
+                                    [src]="asset.fileUrl + '#t=0.5'"
+                                    muted
+                                    playsinline
+                                    preload="metadata"
+                                    aria-hidden="true"
+                                    tabindex="-1"></video>
+                            } @else {
+                                <img
+                                    [src]="asset.thumbnailUrl"
+                                    [alt]="asset.title"
+                                    loading="lazy"
+                                    (error)="onThumbnailError($event)" />
+                            }
+                            @if (asset.fileType === 'mp4') {
+                                <span class="asset-card__play" aria-hidden="true">
+                                    <i class="fa-sharp fa-regular fa-play"></i>
+                                </span>
+                            }
+                            <span class="asset-card__type">{{ asset.fileType }}</span>
+                        </div>
+                        <div class="asset-card__body">
+                            <h3 class="asset-card__title" [title]="asset.title">
+                                <!-- Its click area covers the whole card -->
+                                <a
+                                    class="asset-card__open"
+                                    [routerLink]="['/asset', asset.id]"
+                                    target="_blank"
+                                    rel="noopener">
+                                    {{ asset.title }}
+                                </a>
+                            </h3>
+                            <p class="asset-card__meta">{{ assetLocation(asset) }}</p>
+                            @if (asset.status; as assetStatus) {
+                                <app-status-badge
+                                    class="asset-card__status"
+                                    [status]="assetStatus" />
+                            }
+                            <p class="asset-card__meta">
+                                Updated {{ asset.updatedAt | date: 'MMM d, y' }}
+                            </p>
+                            @if (asset.tags.length) {
+                                <ul class="asset-card__tags" aria-label="Tags">
+                                    @for (tag of asset.tags; track tag) {
+                                        <li class="asset-card__tag">{{ tag }}</li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        } @else {
+            <ul class="library-list">
+                @for (asset of list()!.assets; track asset.id) {
+                    <li class="library-list__row" data-testid="mini-library-row">
+                        <img
+                            class="library-list__thumbnail"
+                            [src]="asset.thumbnailUrl"
+                            alt=""
+                            loading="lazy"
+                            (error)="onThumbnailError($event)" />
+                        <div class="library-list__name">
+                            <a
+                                class="library-list__title"
+                                [routerLink]="['/asset', asset.id]"
+                                target="_blank"
+                                rel="noopener">
+                                {{ asset.title }}
+                            </a>
+                            <span class="library-list__location">{{ assetLocation(asset) }}</span>
+                            @if (asset.tags.length) {
+                                <span class="library-list__tags">{{ asset.tags.join(' · ') }}</span>
+                            }
+                        </div>
+                        <span class="library-list__type">{{ asset.fileType }}</span>
+                        <span class="library-list__date">
+                            {{ asset.updatedAt | date: 'MMM d, y' }}
+                        </span>
+                    </li>
+                }
+            </ul>
+        }
+    </ntv-card>
+</div>

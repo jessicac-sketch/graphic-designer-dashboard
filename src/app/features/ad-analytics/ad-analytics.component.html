@@ -1,0 +1,579 @@
+<div class="page">
+    <app-page-header
+        eyebrow="Ads"
+        title="Ad Analytics"
+        subtitle="View all reports for programmatic advertising content">
+        <!-- Same range as the Dashboard and Ranking Data (Yesterday by default) -->
+        <app-range-controls
+            [disabled]="isLoadingPlayRecords() || isLoadingLocations()"
+            [allowAllTime]="true" />
+    </app-page-header>
+
+    <app-range-notice />
+
+    <div class="ad-analytics-content">
+        @if (content(); as currentContent) {
+            <!-- Content Card -->
+            <ntv-card [config]="cardConfig" class="ad-analytics__card">
+                <div class="ad-analytics__content">
+                    <!-- Thumbnail Section -->
+                    <div class="ad-analytics__thumbnail-section">
+                        @if (currentContent.mediaUrl) {
+                            @if (currentContent.creativeType === 'video') {
+                                <video
+                                    [src]="currentContent.mediaUrl"
+                                    controls
+                                    playsinline
+                                    class="ad-analytics__thumbnail"></video>
+                            } @else {
+                                <img
+                                    [src]="currentContent.mediaUrl"
+                                    [alt]="currentContent.title"
+                                    class="ad-analytics__thumbnail" />
+                            }
+                        } @else {
+                            <div class="ad-analytics__thumbnail-placeholder">
+                                {{ currentContent.status === 'failed' ? 'Failed' : 'Processing…' }}
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Info Section -->
+                    <div class="ad-analytics__info-section">
+                        <!-- Top Section: Title/ID -->
+                        <div class="ad-analytics__top-section">
+                            <!-- Title and ID -->
+                            <div class="ad-analytics__header-info">
+                                <h2 class="ad-analytics__title">{{ currentContent.title }}</h2>
+                                <span class="ad-analytics__id"
+                                    >ID: {{ currentContent.contentId }}</span
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Details Grid -->
+                        <div class="ad-analytics__details-grid">
+                            <div class="ad-analytics__detail-item">
+                                <span class="ad-analytics__detail-label">
+                                    Last Play Time Recorded
+                                </span>
+                                <span class="ad-analytics__detail-value">
+                                    @if (currentContent.lastPlayed) {
+                                        {{
+                                            timeDisplayService.formatTimestamp(
+                                                currentContent.lastPlayed
+                                            )
+                                        }}
+                                    } @else {
+                                        Never played
+                                    }
+                                </span>
+                            </div>
+
+                            <div class="ad-analytics__detail-item">
+                                <span class="ad-analytics__detail-label">Play Count</span>
+                                <span class="ad-analytics__detail-value">
+                                    {{ currentContent.playCount | number }}
+                                </span>
+                            </div>
+
+                            @if (hasRange()) {
+                                <div class="ad-analytics__detail-item">
+                                    <span class="ad-analytics__detail-label">Plays in Range</span>
+                                    <span class="ad-analytics__detail-value">
+                                        @if (rangePlayTotal() !== null) {
+                                            {{ rangePlayTotal() | number }}
+                                        } @else {
+                                            --
+                                        }
+                                    </span>
+                                </div>
+                            }
+
+                            <div class="ad-analytics__detail-item">
+                                <span class="ad-analytics__detail-label">Added Date</span>
+                                <span class="ad-analytics__detail-value">
+                                    {{
+                                        timeDisplayService.formatTimestamp(currentContent.createdAt)
+                                    }}
+                                </span>
+                            </div>
+
+                            <div class="ad-analytics__detail-item">
+                                <span class="ad-analytics__detail-label">Source</span>
+                                <span class="ad-analytics__detail-value">{{
+                                    currentContent.creativeSource
+                                }}</span>
+                            </div>
+
+                            @if (currentContent.duration) {
+                                <div class="ad-analytics__detail-item">
+                                    <span class="ad-analytics__detail-label">Duration</span>
+                                    <span class="ad-analytics__detail-value">
+                                        {{ currentContent.duration }} seconds
+                                    </span>
+                                </div>
+                            }
+
+                            <div class="ad-analytics__detail-item">
+                                <span class="ad-analytics__detail-label"
+                                    >Total Duration Played</span
+                                >
+                                <span class="ad-analytics__detail-value">
+                                    {{ formatDuration(currentContent.totalDurationPlayed) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ntv-card>
+
+            <!-- Where it was received: states, then the venues (in the picked state) -->
+            <app-summary-card
+                class="ad-analytics__breakdown"
+                title="Where it was received"
+                icon="map-location-dot"
+                hint="Pick a state to see its venues, then a venue to see its playlist slots.">
+                @if (hasLocationsError()) {
+                    <app-section-error
+                        message="Failed to load where this ad was received."
+                        (retry)="reloadLocations()" />
+                } @else if (isLoadingLocations()) {
+                    <ntv-skeleton variant="custom" width="100%" height="260px" />
+                } @else {
+                    <div class="ad-analytics__breakdown-grid">
+                        <section class="ad-analytics__breakdown-col">
+                            <h3 class="ad-analytics__breakdown-title">States</h3>
+                            <app-share-list
+                                [items]="stateItems()"
+                                [total]="locationsTotal()"
+                                unit="plays"
+                                [limit]="topLimit"
+                                [selectable]="true"
+                                [selectedId]="selectedStateId()"
+                                (selectItem)="selectState($event)"
+                                [emptyText]="
+                                    hasRange()
+                                        ? 'This ad wasn\'t played anywhere in this date range.'
+                                        : 'This ad hasn\'t been played anywhere yet.'
+                                " />
+                            @if (withoutVenue() > 0) {
+                                <p class="ad-analytics__breakdown-note">
+                                    {{ withoutVenue() | number }} plays had no venue, so no state.
+                                </p>
+                            }
+                        </section>
+
+                        <section class="ad-analytics__breakdown-col">
+                            <h3 class="ad-analytics__breakdown-title">
+                                Venues
+                                @if (selectedStateId(); as state) {
+                                    in
+                                    <span class="ad-analytics__breakdown-name">{{
+                                        stateName(state)
+                                    }}</span>
+                                }
+                            </h3>
+                            <app-share-list
+                                [items]="venueItems()"
+                                [total]="venuesTotal()"
+                                unit="plays"
+                                [limit]="venuesLimit"
+                                [selectable]="true"
+                                [selectedId]="selectedVenueId()"
+                                (selectItem)="selectVenue($event)"
+                                [emptyText]="
+                                    hasRange()
+                                        ? 'No venues played this ad here in this date range.'
+                                        : 'No venues played this ad here.'
+                                " />
+                        </section>
+
+                        <!-- This ad's plays at the picked venue, grouped by playlist slot (ascending) -->
+                        <section
+                            class="ad-analytics__breakdown-col"
+                            data-testid="ad-analytics-venue-slots">
+                            <h3 class="ad-analytics__breakdown-title">
+                                Plays
+                                @if (selectedVenue(); as venue) {
+                                    at
+                                    <span
+                                        class="ad-analytics__breakdown-name"
+                                        [title]="venue.name"
+                                        >{{ venue.name }}</span
+                                    >
+                                }
+                                @if (!isLoadingVenueSlots() && !hasVenueSlotsError()) {
+                                    <app-slot-stat [slots]="venueSlots()" />
+                                }
+                            </h3>
+
+                            @if (!selectedVenueId()) {
+                                <p class="ad-analytics__breakdown-note">
+                                    Pick a venue to see its playlist slots.
+                                </p>
+                            } @else if (hasVenueSlotsError()) {
+                                <app-section-error
+                                    message="Failed to load this venue's playlist slots."
+                                    (retry)="reloadVenueSlots()" />
+                            } @else if (isLoadingVenueSlots()) {
+                                <ntv-skeleton variant="custom" width="100%" height="260px" />
+                            } @else {
+                                <app-slot-grid
+                                    [slots]="venueSlots()"
+                                    emptyText="No plays found for this venue." />
+                            }
+                        </section>
+                    </div>
+                }
+            </app-summary-card>
+
+            <!-- Tabs Section -->
+            <ntv-card [config]="cardConfig">
+                <div class="ad-analytics__tabs-section p-6">
+                    <!-- Tabs, with the export button at the right end of the row -->
+                    <div class="ad-analytics__tabs-bar">
+                        <ntv-tabs
+                            [tabs]="tabs"
+                            [activeIndex]="activeTabIndex"
+                            (tabChange)="activeTabIndex = $event"
+                            class="ad-analytics__tabs" />
+
+                        <div class="ad-analytics__tabs-actions">
+                            <app-export-button
+                                [disabled]="!canExport()"
+                                [disabledReason]="exportDisabledReason()"
+                                [exporting]="isExporting()"
+                                (formatSelected)="exportPlayRecords($event)" />
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    @switch (activeTabIndex) {
+                        <!-- Play Records Tab -->
+                        @case (0) {
+                            <div class="ad-analytics__play-records">
+                                <!-- POP Duration legend / bucket filter -->
+                                <div class="ad-analytics__pop-legend">
+                                    <input
+                                        type="text"
+                                        class="ad-analytics__search-input"
+                                        placeholder="Search Creative ID, Venue ID, or Device ID"
+                                        [value]="searchTerm()"
+                                        (input)="onSearchInput($event)"
+                                        data-testid="ad-analytics-play-records-search" />
+                                    @for (entry of popDurationLegend; track entry.bucket) {
+                                        <button
+                                            type="button"
+                                            class="ad-analytics__pop-legend-item"
+                                            [class.ad-analytics__pop-legend-item--active]="
+                                                activeBucketFilter() === entry.bucket
+                                            "
+                                            (click)="toggleBucketFilter(entry.bucket)"
+                                            [attr.data-testid]="
+                                                'ad-analytics-pop-legend-' + entry.bucket
+                                            ">
+                                            <span
+                                                class="ad-analytics__pop-legend-swatch"
+                                                [style.background-color]="
+                                                    'rgb(' + entry.rgb + ')'
+                                                "></span>
+                                            <span>{{ entry.label }} ({{ entry.range }})</span>
+                                        </button>
+                                    }
+                                    @if (activeBucketFilter()) {
+                                        <button
+                                            type="button"
+                                            class="ad-analytics__pop-legend-clear"
+                                            (click)="toggleBucketFilter(activeBucketFilter()!)"
+                                            data-testid="ad-analytics-pop-legend-clear">
+                                            <i
+                                                class="fa-sharp fa-regular fa-filter-circle-xmark"></i>
+                                            <span>Clear filter</span>
+                                        </button>
+                                    }
+                                </div>
+
+                                <ntv-table
+                                    [columns]="playRecordsColumns"
+                                    [data]="visiblePlayRecords()"
+                                    [tableTitle]="''"
+                                    [filterEnabled]="true"
+                                    [columnDraggable]="true"
+                                    [hasIndex]="true"
+                                    [showItemCount]="true"
+                                    [showColumnSettings]="false"
+                                    [tableHeight]="'1400px'"
+                                    [defaultMinWidth]="100"
+                                    [hasCheckBox]="false"
+                                    class="ad-analytics__table ad-analytics__table--play-records">
+                                    <ng-template
+                                        #body
+                                        let-rowData
+                                        let-columns="columns"
+                                        let-hasIndex="hasIndex"
+                                        let-rowIndex="rowIndex"
+                                        let-hasCheckBox="hasCheckBox">
+                                        <tr
+                                            class="ad-analytics__play-record-row pop-row"
+                                            [style.--pop-row-color]="popDurationRowColor(rowData)"
+                                            (click)="openPlayRecordPreview(rowData)"
+                                            role="button"
+                                            tabindex="0">
+                                            @if (hasIndex) {
+                                                <td class="index-column">{{ rowIndex }}</td>
+                                            }
+                                            @for (col of columns; track col.field) {
+                                                <td>
+                                                    @if (col.field === 'popScreenshot') {
+                                                        @if (rowData.popScreenshot) {
+                                                            <img
+                                                                [src]="rowData.popScreenshot"
+                                                                [alt]="
+                                                                    rowData.venueId ||
+                                                                    'Proof of play'
+                                                                "
+                                                                class="play-record-screenshot" />
+                                                        } @else {
+                                                            <span>--</span>
+                                                        }
+                                                    } @else if (col.field === 'venueId') {
+                                                        @if (rowData.venueId) {
+                                                            <a
+                                                                class="table-cell-link"
+                                                                [routerLink]="[
+                                                                    '/venue',
+                                                                    rowData.venueId,
+                                                                ]"
+                                                                (click)="$event.stopPropagation()">
+                                                                {{ rowData.venueId }}
+                                                            </a>
+                                                        } @else {
+                                                            <span>Unknown</span>
+                                                        }
+                                                    } @else if (
+                                                        col.field === 'played' ||
+                                                        col.field === 'fetchedAt' ||
+                                                        col.field === 'proofOfPlaySent' ||
+                                                        col.field === 'dateServed'
+                                                    ) {
+                                                        <span>{{
+                                                            timeDisplayService.formatTimestamp(
+                                                                rowData[col.field]
+                                                            )
+                                                        }}</span>
+                                                    } @else if (col.field === 'deviceId') {
+                                                        <span>{{ rowData.deviceId || 'N/A' }}</span>
+                                                    } @else if (
+                                                        col.field === 'popDurationMinutes'
+                                                    ) {
+                                                        <span>{{
+                                                            formatPopDuration(rowData)
+                                                        }}</span>
+                                                    } @else if (col.field === 'served') {
+                                                        <span>{{
+                                                            rowData.served ? 'Yes' : 'No'
+                                                        }}</span>
+                                                    } @else {
+                                                        <span>{{ rowData[col.field] }}</span>
+                                                    }
+                                                </td>
+                                            }
+                                        </tr>
+                                    </ng-template>
+                                </ntv-table>
+
+                                @if (rangePlayTotal(); as total) {
+                                    @if (total > playRecordsData().length) {
+                                        <p class="ad-analytics__records-note">
+                                            Showing the latest
+                                            {{ playRecordsData().length | number }} of
+                                            {{ total | number }} plays in this range. Export has
+                                            them all.
+                                        </p>
+                                    }
+                                }
+                            </div>
+                        }
+
+                        <!-- Locations Tab -->
+                        @case (1) {
+                            <div class="ad-analytics__locations">
+                                <ntv-table
+                                    [columns]="locationsColumns"
+                                    [data]="locationsData()"
+                                    [tableTitle]="''"
+                                    [filterEnabled]="true"
+                                    [columnDraggable]="true"
+                                    [hasIndex]="true"
+                                    [showItemCount]="true"
+                                    [showColumnSettings]="false"
+                                    [tableHeight]="'450px'"
+                                    [defaultMinWidth]="100"
+                                    [hasCheckBox]="false"
+                                    class="ad-analytics__table">
+                                    <ng-template
+                                        #body
+                                        let-rowData
+                                        let-columns="columns"
+                                        let-hasIndex="hasIndex"
+                                        let-rowIndex="rowIndex"
+                                        let-hasCheckBox="hasCheckBox">
+                                        <tr>
+                                            @if (hasIndex) {
+                                                <td class="index-column">{{ rowIndex }}</td>
+                                            }
+                                            @for (col of columns; track col.field) {
+                                                <td>
+                                                    @if (col.field === 'venueId') {
+                                                        <a
+                                                            class="table-cell-link"
+                                                            [routerLink]="[
+                                                                '/venue',
+                                                                rowData.venueId,
+                                                            ]">
+                                                            {{ rowData.venueId }}
+                                                        </a>
+                                                    } @else if (col.field === 'playCount') {
+                                                        <span>{{
+                                                            rowData.playCount | number
+                                                        }}</span>
+                                                    } @else if (col.field === 'totalDuration') {
+                                                        <span>{{
+                                                            formatDuration(rowData.totalDuration)
+                                                        }}</span>
+                                                    } @else if (col.field === 'latestPlay') {
+                                                        <span>{{
+                                                            timeDisplayService.formatTimestamp(
+                                                                rowData.latestPlay
+                                                            )
+                                                        }}</span>
+                                                    } @else {
+                                                        <span>{{ rowData[col.field] }}</span>
+                                                    }
+                                                </td>
+                                            }
+                                        </tr>
+                                    </ng-template>
+                                </ntv-table>
+                            </div>
+                        }
+                    }
+                </div>
+            </ntv-card>
+
+            @if (selectedPlayRecord(); as record) {
+                <ntv-modal
+                    [isVisible]="true"
+                    [showHeader]="false"
+                    [closable]="false"
+                    [closeOnBackdrop]="true"
+                    [closeOnEscape]="true"
+                    size="xlarge"
+                    [modalWidth]="'min(90vw, 80rem)'"
+                    [modalHeight]="'auto'"
+                    backdrop="blur"
+                    (modalClose)="closePlayRecordPreview()"
+                    (backdropClick)="closePlayRecordPreview()">
+                    <div class="ad-preview" (click)="$event.stopPropagation()">
+                        <div class="ad-preview__media">
+                            @if (record.popScreenshot) {
+                                <img
+                                    [src]="record.popScreenshot"
+                                    [alt]="currentContent.title + ' proof of play'"
+                                    class="ad-preview__image" />
+                            } @else {
+                                <span class="ad-preview__placeholder"
+                                    >No proof-of-play screenshot available</span
+                                >
+                            }
+                        </div>
+
+                        <aside class="ad-preview__details">
+                            <header class="ad-preview__header">
+                                <h2 class="ad-preview__title">
+                                    {{ currentContent.title }}
+                                </h2>
+                                <button
+                                    type="button"
+                                    class="ad-preview__close"
+                                    aria-label="Close proof of play"
+                                    data-testid="ad-analytics-preview-close"
+                                    (click)="closePlayRecordPreview()">
+                                    ×
+                                </button>
+                            </header>
+
+                            <div class="ad-preview__content">
+                                <section class="ad-preview__card">
+                                    <span class="ad-preview__label">Venue ID</span>
+                                    <p class="ad-preview__value">
+                                        @if (record.venueId) {
+                                            <a
+                                                class="table-cell-link"
+                                                [routerLink]="['/venue', record.venueId]">
+                                                {{ record.venueId }}
+                                            </a>
+                                        } @else {
+                                            Unknown
+                                        }
+                                    </p>
+                                </section>
+
+                                <section class="ad-preview__card">
+                                    <span class="ad-preview__label">Device ID</span>
+                                    <p class="ad-preview__value">
+                                        {{ record.deviceId || 'N/A' }}
+                                    </p>
+                                </section>
+
+                                <section class="ad-preview__card">
+                                    <span class="ad-preview__label">Play record</span>
+                                    <div class="ad-preview__grid">
+                                        <span>Played</span>
+                                        <strong>
+                                            {{
+                                                record.played
+                                                    ? timeDisplayService.formatTimestamp(
+                                                          record.played
+                                                      )
+                                                    : 'N/A'
+                                            }}
+                                        </strong>
+                                        <span>Fetched</span>
+                                        <strong>
+                                            {{
+                                                timeDisplayService.formatTimestamp(record.fetchedAt)
+                                            }}
+                                        </strong>
+                                        <span>Served</span>
+                                        <strong>{{ record.served ? 'Yes' : 'No' }}</strong>
+                                        <span>Proof sent</span>
+                                        <strong>
+                                            {{
+                                                record.proofOfPlaySent
+                                                    ? timeDisplayService.formatTimestamp(
+                                                          record.proofOfPlaySent
+                                                      )
+                                                    : 'N/A'
+                                            }}
+                                        </strong>
+                                    </div>
+                                </section>
+                            </div>
+                        </aside>
+                    </div>
+                </ntv-modal>
+            }
+        } @else {
+            @if (isLoadingContent()) {
+                <ntv-skeleton variant="card" width="100%" height="280px" />
+                <ntv-skeleton variant="card" width="100%" height="500px" />
+            } @else {
+                <div class="page__not-found">
+                    <p>Content not found</p>
+                </div>
+            }
+        }
+    </div>
+</div>

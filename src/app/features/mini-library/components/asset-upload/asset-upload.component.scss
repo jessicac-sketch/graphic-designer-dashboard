@@ -1,0 +1,52 @@
+:host {
+    @apply contents;
+}
+
+.asset-upload {
+    @apply flex flex-col gap-4;
+
+    &__choices {
+        @apply flex flex-wrap gap-2;
+    }
+
+    &__hint {
+        @apply text-sm text-content-muted;
+    }
+
+    &__field {
+        @apply flex flex-col gap-2 border-t border-surface-border pt-4;
+    }
+
+    &__label {
+        @apply text-label font-semibold uppercase tracking-[0.14em] text-content-muted !font-mono;
+    }
+
+    &__optional {
+        @apply normal-case tracking-normal;
+    }
+
+    /* Over the uploader's full-screen overlay (z-index 1000), at the top of the screen */
+    &__bar {
+        @apply fixed left-1/2 top-4 z-[1001] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap items-center gap-x-4 gap-y-1 border border-brand bg-surface-raised px-4 py-2 text-sm text-content-primary shadow-xl;
+    }
+
+    &__bar-label {
+        @apply mr-1 text-content-muted;
+    }
+
+    &__bar-error {
+        @apply text-status-crit;
+    }
+
+    &__bar-action {
+        @apply font-semibold text-brand underline;
+
+        &:hover:not(:disabled) {
+            @apply text-content-primary;
+        }
+
+        &:disabled {
+            @apply cursor-not-allowed opacity-50;
+        }
+    }
+}

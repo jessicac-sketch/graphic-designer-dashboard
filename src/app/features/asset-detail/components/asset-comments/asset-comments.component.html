@@ -1,0 +1,207 @@
+<section class="comments" aria-labelledby="comments-heading">
+    <header class="comments__head">
+        <h2 id="comments-heading" class="comments__heading">
+            Comments
+            @if (threads()) {
+                <span class="comments__count">{{ total() }}</span>
+            }
+        </h2>
+        @if (resolvedThreads().length) {
+            <button
+                type="button"
+                class="comments__toggle"
+                [attr.aria-expanded]="showResolved()"
+                (click)="showResolved.set(!showResolved())">
+                {{ showResolved() ? 'Hide' : 'Show' }} resolved ({{ resolvedThreads().length }})
+            </button>
+        }
+    </header>
+
+    @if (actionError(); as error) {
+        <p class="comments__error" role="alert">
+            {{ error }}
+            <button type="button" class="comments__link" (click)="actionError.set(null)">
+                Dismiss
+            </button>
+        </p>
+    }
+
+    @if (threads() === undefined) {
+        <div class="comments__loading" aria-hidden="true">
+            @for (row of [0, 1]; track row) {
+                <ntv-skeleton variant="custom" width="100%" height="56px" />
+            }
+        </div>
+    } @else if (threads() === null) {
+        <p class="comments__error">
+            {{ loadError() }}
+            <button type="button" class="comments__link" (click)="retry()">Retry</button>
+        </p>
+    } @else {
+        @if (!openThreads().length && !showResolved()) {
+            <p class="comments__empty">
+                @if (resolvedThreads().length) {
+                    Every thread is resolved.
+                } @else {
+                    No comments yet. Leave QC notes, feedback or approvals here.
+                }
+            </p>
+        }
+
+        <ol class="comments__threads">
+            @for (thread of openThreads(); track thread.id) {
+                <ng-container *ngTemplateOutlet="threadTemplate; context: { $implicit: thread }" />
+            }
+            @if (showResolved()) {
+                @for (thread of resolvedThreads(); track thread.id) {
+                    <ng-container
+                        *ngTemplateOutlet="threadTemplate; context: { $implicit: thread }" />
+                }
+            }
+        </ol>
+    }
+
+    <!-- New thread -->
+    <form class="comments__composer" (submit)="$event.preventDefault(); post()">
+        <label class="sr-only" for="new-comment">Add a comment</label>
+        <textarea
+            id="new-comment"
+            class="comments__input"
+            rows="3"
+            placeholder="Add a comment… (Ctrl + Enter to post)"
+            [maxLength]="maxLength"
+            [formControl]="draft"
+            (keydown)="onKeydown($event, null)"></textarea>
+        <div class="comments__composer-actions">
+            <span class="comments__hint">{{ draft.value.length }} / {{ maxLength }}</span>
+            <ntv-button
+                size="md"
+                type="submit"
+                [shadow]="false"
+                [loading]="busy() === 'new'"
+                [disabled]="!draft.value.trim() || !!busy()">
+                Comment
+            </ntv-button>
+        </div>
+    </form>
+</section>
+
+<ng-template #threadTemplate let-thread>
+    <li class="comment-thread" [class.comment-thread--resolved]="!!thread.resolvedAt">
+        <ng-container *ngTemplateOutlet="commentTemplate; context: { $implicit: thread }" />
+
+        @if (thread.resolvedAt) {
+            <p class="comment-thread__resolved">
+                <i class="fa-sharp fa-regular fa-circle-check" aria-hidden="true"></i>
+                Resolved by {{ nameOf(thread.resolvedBy) }} ·
+                {{ thread.resolvedAt | date: 'MMM d, h:mm a' }}
+            </p>
+        }
+
+        @if (thread.replies.length) {
+            <ol class="comment-thread__replies">
+                @for (reply of thread.replies; track reply.id) {
+                    <li>
+                        <ng-container
+                            *ngTemplateOutlet="commentTemplate; context: { $implicit: reply }" />
+                    </li>
+                }
+            </ol>
+        }
+
+        @if (replyingTo() === thread.id) {
+            <form class="comment-thread__reply" (submit)="$event.preventDefault(); reply(thread)">
+                <label class="sr-only" [for]="'reply-' + thread.id">Reply</label>
+                <textarea
+                    class="comments__input"
+                    rows="2"
+                    placeholder="Reply… (Ctrl + Enter to post)"
+                    [id]="'reply-' + thread.id"
+                    [maxLength]="maxLength"
+                    [formControl]="replyDraft"
+                    (keydown)="onKeydown($event, thread)"></textarea>
+                <div class="comments__composer-actions">
+                    <button type="button" class="comments__link" (click)="replyingTo.set(null)">
+                        Cancel
+                    </button>
+                    <ntv-button
+                        size="sm"
+                        type="submit"
+                        [shadow]="false"
+                        [loading]="busy() === thread.id"
+                        [disabled]="!replyDraft.value.trim() || !!busy()">
+                        Reply
+                    </ntv-button>
+                </div>
+            </form>
+        }
+
+        <div class="comment-thread__actions">
+            @if (!thread.resolvedAt && replyingTo() !== thread.id) {
+                <button type="button" class="comments__action" (click)="startReply(thread)">
+                    <i class="fa-sharp fa-regular fa-reply" aria-hidden="true"></i>
+                    Reply
+                </button>
+            }
+            <button
+                type="button"
+                class="comments__action"
+                [disabled]="!!busy()"
+                (click)="toggleResolved(thread)">
+                <i
+                    class="fa-sharp fa-regular"
+                    [class.fa-circle-check]="!thread.resolvedAt"
+                    [class.fa-rotate-left]="!!thread.resolvedAt"
+                    aria-hidden="true"></i>
+                {{ thread.resolvedAt ? 'Reopen' : 'Resolve' }}
+            </button>
+        </div>
+    </li>
+</ng-template>
+
+<ng-template #commentTemplate let-comment>
+    <article class="comment">
+        <span class="comment__avatar" aria-hidden="true">{{
+            nameOf(comment.author) | initials
+        }}</span>
+        <div class="comment__content">
+            <header class="comment__meta">
+                <span class="comment__author" [title]="comment.author">
+                    {{ nameOf(comment.author) }}
+                </span>
+                <time class="comment__time" [attr.datetime]="comment.createdAt">
+                    {{ comment.createdAt | date: 'MMM d, h:mm a' }}
+                </time>
+                @if (comment.author === me()) {
+                    @if (confirmingDelete() === comment.id) {
+                        <span class="comment__confirm">
+                            Delete{{ comment.replies.length ? ' with its replies' : '' }}?
+                            <button
+                                type="button"
+                                class="comments__link comments__link--danger"
+                                [disabled]="!!busy()"
+                                (click)="remove(comment)">
+                                Delete
+                            </button>
+                            <button
+                                type="button"
+                                class="comments__link"
+                                (click)="confirmingDelete.set(null)">
+                                Keep
+                            </button>
+                        </span>
+                    } @else {
+                        <button
+                            type="button"
+                            class="comment__delete"
+                            [attr.aria-label]="'Delete comment'"
+                            (click)="confirmingDelete.set(comment.id)">
+                            <i class="fa-sharp fa-regular fa-trash" aria-hidden="true"></i>
+                        </button>
+                    }
+                }
+            </header>
+            <p class="comment__body">{{ comment.body }}</p>
+        </div>
+    </article>
+</ng-template>

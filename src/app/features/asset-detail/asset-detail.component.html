@@ -1,0 +1,261 @@
+<div class="page asset-detail">
+    @if (asset() === undefined) {
+        <div class="asset-detail__loading" aria-hidden="true">
+            <ntv-skeleton variant="custom" width="40%" height="32px" />
+            <div class="asset-detail__layout">
+                <ntv-skeleton variant="custom" width="100%" height="420px" />
+                <ntv-skeleton variant="custom" width="100%" height="420px" />
+            </div>
+        </div>
+    } @else if (asset() === null) {
+        <div class="asset-detail__message">
+            <i
+                class="asset-detail__message-icon fa-sharp fa-regular fa-file-circle-question"
+                aria-hidden="true"></i>
+            @if (notFound()) {
+                <h1 class="asset-detail__message-title">This asset doesn't exist</h1>
+                <p>It may have been deleted, or the link is wrong.</p>
+            } @else {
+                <h1 class="asset-detail__message-title">{{ loadError() }}</h1>
+                <button type="button" class="asset-detail__link" (click)="retry()">Retry</button>
+            }
+            <a class="asset-detail__link" routerLink="/mini-library">Go to the Mini-Library</a>
+        </div>
+    } @else {
+        @let item = asset()!;
+        <app-page-header [eyebrow]="categoryLabel()" [title]="item.title" [subtitle]="location()">
+            @if (item.status; as status) {
+                <app-status-menu
+                    [status]="status"
+                    [busy]="savingStatus()"
+                    [label]="'Status of ' + item.title"
+                    (statusChange)="changeStatus($event)" />
+            }
+        </app-page-header>
+
+        @if (actionError(); as error) {
+            <p class="asset-detail__error" role="alert">
+                {{ error }}
+                <button type="button" class="asset-detail__link" (click)="actionError.set(null)">
+                    Dismiss
+                </button>
+            </p>
+        }
+
+        <div class="asset-detail__layout">
+            <div class="asset-detail__main">
+                <!-- Letterboxed on the page background, so any aspect ratio fits -->
+                <div class="asset-detail__viewer">
+                    @if (item.fileType === 'mp4') {
+                        <video
+                            #player
+                            class="asset-detail__media"
+                            [src]="item.fileUrl"
+                            controls
+                            playsinline
+                            preload="metadata"
+                            [attr.aria-label]="item.title"
+                            (loadedmetadata)="onVideoMetadata($event)"
+                            (play)="isPlaying.set(true)"
+                            (pause)="isPlaying.set(false)"
+                            (ended)="isPlaying.set(false)"></video>
+                        @if (!isPlaying()) {
+                            <!-- Big play button while paused (the player's own bar stays at the bottom) -->
+                            <button
+                                type="button"
+                                class="asset-detail__play"
+                                aria-label="Play video"
+                                (click)="player.play()">
+                                <i class="fa-sharp fa-solid fa-play" aria-hidden="true"></i>
+                            </button>
+                        }
+                    } @else {
+                        <img
+                            class="asset-detail__media"
+                            [src]="item.fileUrl"
+                            [alt]="item.title"
+                            (load)="onImageLoad($event)" />
+                    }
+                </div>
+
+                <ntv-card [config]="cardConfig" class="asset-detail__card">
+                    <app-asset-comments [assetId]="item.id" />
+                </ntv-card>
+            </div>
+
+            <aside class="asset-detail__side">
+                <!-- File: name, shareable link, copy, download -->
+                <ntv-card [config]="cardConfig" class="asset-detail__card">
+                    <section class="asset-detail__section" aria-labelledby="file-heading">
+                        <h2 id="file-heading" class="asset-detail__heading">
+                            <i class="fa-sharp fa-regular fa-file" aria-hidden="true"></i>
+                            File
+                        </h2>
+                        <p class="asset-detail__file-name">
+                            <span [title]="fileName()">{{ fileName() }}</span>
+                            <span class="asset-detail__version">v{{ item.version }}</span>
+                        </p>
+
+                        <label class="asset-detail__label" for="shareable-link"
+                            >Shareable link</label
+                        >
+                        <input
+                            id="shareable-link"
+                            class="asset-detail__link-field"
+                            type="text"
+                            readonly
+                            [value]="item.fileUrl"
+                            (focus)="$any($event.target).select()" />
+
+                        <div class="asset-detail__actions">
+                            <ntv-button
+                                size="md"
+                                variant="outline"
+                                [shadow]="false"
+                                (buttonClick)="copyLink()">
+                                <span class="asset-detail__button">
+                                    <i
+                                        class="fa-sharp fa-regular"
+                                        [class.fa-link]="!copied()"
+                                        [class.fa-check]="copied()"
+                                        aria-hidden="true"></i>
+                                    {{ copied() ? 'Copied' : 'Copy link' }}
+                                </span>
+                            </ntv-button>
+                            <ntv-button size="md" [shadow]="false" (buttonClick)="download()">
+                                <span class="asset-detail__button">
+                                    <i
+                                        class="fa-sharp fa-regular fa-download"
+                                        aria-hidden="true"></i>
+                                    Download
+                                </span>
+                            </ntv-button>
+                        </div>
+                    </section>
+                </ntv-card>
+
+                <!-- Details -->
+                <ntv-card [config]="cardConfig" class="asset-detail__card">
+                    <section class="asset-detail__section" aria-labelledby="details-heading">
+                        <h2 id="details-heading" class="asset-detail__heading">Details</h2>
+                        <dl class="asset-detail__details">
+                            <div class="asset-detail__row">
+                                <dt>Category</dt>
+                                <dd>{{ categoryLabel() }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>Location</dt>
+                                <dd>{{ location() }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>File type</dt>
+                                <dd>{{ fileTypeLabel() }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>Dimensions</dt>
+                                <dd>{{ dimensions() ?? '—' }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>Length</dt>
+                                <dd>{{ duration() ?? '—' }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>File size</dt>
+                                <dd>{{ fileSize() }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>Version</dt>
+                                <dd>v{{ item.version }}</dd>
+                            </div>
+                            @if (item.statusUpdatedAt) {
+                                <div class="asset-detail__row">
+                                    <dt>Status since</dt>
+                                    <dd>{{ item.statusUpdatedAt | date: 'MMM d, h:mm a' }}</dd>
+                                </div>
+                            }
+                            <div class="asset-detail__row">
+                                <dt>Added</dt>
+                                <dd>{{ item.createdAt | date: 'MMM d, y, h:mm a' }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>Updated</dt>
+                                <dd>{{ item.updatedAt | date: 'MMM d, y, h:mm a' }}</dd>
+                            </div>
+                            <div class="asset-detail__row">
+                                <dt>Added by</dt>
+                                <dd [title]="item.createdBy ?? ''">
+                                    {{ item.createdBy ? nameOf(item.createdBy) : '—' }}
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <!-- Description: shown, or edited in place -->
+                        <div class="asset-detail__description">
+                            <div class="asset-detail__description-head">
+                                <span class="asset-detail__label">Description</span>
+                                @if (!editingDescription()) {
+                                    <button
+                                        type="button"
+                                        class="asset-detail__link"
+                                        (click)="editDescription()">
+                                        {{ item.description ? 'Edit' : 'Add' }}
+                                    </button>
+                                }
+                            </div>
+                            @if (editingDescription()) {
+                                <form
+                                    class="asset-detail__description-form"
+                                    (submit)="$event.preventDefault(); saveDescription()">
+                                    <label class="sr-only" for="description">Description</label>
+                                    <textarea
+                                        id="description"
+                                        class="asset-detail__textarea"
+                                        rows="4"
+                                        placeholder="What is it, where is it used, anything worth knowing…"
+                                        [maxLength]="maxDescription"
+                                        [formControl]="descriptionControl"></textarea>
+                                    <div class="asset-detail__description-actions">
+                                        <span class="asset-detail__hint">
+                                            {{ descriptionControl.value.length }} /
+                                            {{ maxDescription }}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            class="asset-detail__link"
+                                            (click)="editingDescription.set(false)">
+                                            Cancel
+                                        </button>
+                                        <ntv-button
+                                            size="sm"
+                                            type="submit"
+                                            [shadow]="false"
+                                            [loading]="savingDescription()">
+                                            Save
+                                        </ntv-button>
+                                    </div>
+                                </form>
+                            } @else if (item.description) {
+                                <p class="asset-detail__description-text">{{ item.description }}</p>
+                            } @else {
+                                <p class="asset-detail__hint">No description yet.</p>
+                            }
+                        </div>
+
+                        <div class="asset-detail__tags-block">
+                            <span class="asset-detail__label">Tags</span>
+                            @if (item.tags.length) {
+                                <ul class="asset-detail__tags">
+                                    @for (tag of item.tags; track tag) {
+                                        <li class="asset-detail__tag">{{ tag }}</li>
+                                    }
+                                </ul>
+                            } @else {
+                                <p class="asset-detail__hint">No tags.</p>
+                            }
+                        </div>
+                    </section>
+                </ntv-card>
+            </aside>
+        </div>
+    }
+</div>

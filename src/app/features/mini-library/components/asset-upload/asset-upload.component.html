@@ -1,0 +1,100 @@
+<!-- Step 1: where do these assets go? -->
+<app-dialog
+    [visible]="step() === 'where'"
+    title="Where do these assets go?"
+    actionLabel="Continue to files"
+    actionIcon="arrow-right"
+    [actionDisabled]="!isComplete()"
+    width="640px"
+    (action)="continueToUpload()"
+    (closed)="onWhereClosed()">
+    <div class="asset-upload">
+        <div class="asset-upload__choices">
+            <app-filter-menu
+                label="Category"
+                placeholder="Pick one"
+                [options]="categoryOptions()"
+                [value]="categoryId() ?? undefined"
+                (valueChange)="selectCategory($event)" />
+
+            @if (category(); as category) {
+                @if (subcategoryOptions().length) {
+                    <app-filter-menu
+                        [label]="category.subcategoryLabel ?? 'Subcategory'"
+                        placeholder="Pick one"
+                        [options]="subcategoryOptions()"
+                        [value]="subcategoryId() ?? undefined"
+                        (valueChange)="selectSubcategory($event)" />
+                }
+            }
+
+            <!-- Only when the picked entry is split further, e.g. Sport under Extreme Sports -->
+            @if (subcategory(); as subcategory) {
+                @if (topicOptions().length) {
+                    <app-filter-menu
+                        [label]="subcategory.topicLabel ?? 'Topic'"
+                        placeholder="Pick one"
+                        [options]="topicOptions()"
+                        [value]="topicId() ?? undefined"
+                        (valueChange)="topicId.set($event)" />
+                }
+            }
+        </div>
+
+        <p class="asset-upload__hint">{{ whereHint() }}</p>
+
+        <div class="asset-upload__field">
+            <span class="asset-upload__label" aria-hidden="true">
+                Tags <span class="asset-upload__optional">(optional)</span>
+            </span>
+            <app-tag-input
+                label="Tags (optional)"
+                [(tags)]="tags"
+                [maxTags]="tagLimits.maxTags"
+                [maxLength]="tagLimits.maxLength" />
+            <p class="asset-upload__hint">
+                Added to every file in this batch, to help find them later. Press Enter or a comma
+                after each tag.
+            </p>
+        </div>
+    </div>
+</app-dialog>
+
+<!-- Step 2: the design system's uploader (a full-screen overlay of its own) -->
+@if (step() === 'upload') {
+    <ntv-uploader
+        [uploadConfig]="pantryUploadConfig()"
+        [accentColor]="accentColor"
+        [maxFiles]="20"
+        [acceptImages]="true"
+        [imageTypes]="[...fileTypes.images]"
+        [acceptVideos]="true"
+        [videoTypes]="[...fileTypes.videos]"
+        [acceptDocuments]="false"
+        [showProviders]="false"
+        (uploadConfirmed)="onUploadConfirmed($event)"
+        (uploadCancelled)="cancelUploads()"
+        (close)="onUploaderClosed()" />
+
+    <!-- Above the uploader's overlay: where the batch goes, and how saving went -->
+    <div class="asset-upload__bar" role="status">
+        <span>
+            <span class="asset-upload__bar-label">Uploading to</span>
+            <b>{{ destination() }}</b>
+        </span>
+        @if (isSaving()) {
+            <span class="asset-upload__bar-label">Adding to the library…</span>
+        } @else if (saveError(); as error) {
+            <span class="asset-upload__bar-error">{{ error }}</span>
+            <button type="button" class="asset-upload__bar-action" (click)="save()">Retry</button>
+        } @else {
+            <button
+                type="button"
+                class="asset-upload__bar-action"
+                [disabled]="isUploading()"
+                (click)="changeDestination()">
+                Change
+            </button>
+        }
+    </div>
+}

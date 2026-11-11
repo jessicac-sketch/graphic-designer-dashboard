@@ -1,0 +1,6 @@
+<div class="brand" [class.brand--lg]="size() === 'lg'">
+    <span #logo class="brand__logo"></span>
+    @if (caption()) {
+        <span class="brand__caption">{{ caption() }}</span>
+    }
+</div>

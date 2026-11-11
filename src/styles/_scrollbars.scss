@@ -1,0 +1,31 @@
+/**
+ * Thin, square, dark scrollbars for every scroll area.
+ *
+ * Standard properties (Firefox, Chrome 121+) plus WebKit pseudo-elements for older
+ * WebKit/Blink. The thumb uses the border color and brightens on hover.
+ */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-surface-border) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--app-surface-border);
+
+    &:hover {
+        background: var(--app-content-muted);
+    }
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}

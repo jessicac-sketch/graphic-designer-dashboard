@@ -1,0 +1,184 @@
+/* Layout follows the content area's own width (sidebar excluded) - see
+   docs/STANDARDS.md (Responsive card layouts). */
+.asset-detail {
+    container: asset-detail / inline-size;
+
+    &__loading {
+        @apply flex flex-col gap-4;
+    }
+
+    /* Viewer + comments | file + details; stacked on a narrow screen */
+    &__layout {
+        @apply grid grid-cols-1 items-start gap-4;
+
+        @container asset-detail (min-width: 60rem) {
+            grid-template-columns: minmax(0, 1fr) 22rem;
+        }
+
+        @container asset-detail (min-width: 80rem) {
+            grid-template-columns: minmax(0, 1fr) 26rem;
+        }
+    }
+
+    &__main,
+    &__side {
+        @apply flex min-w-0 flex-col gap-4;
+    }
+
+    /* A fixed height (not an aspect ratio): the media fills it exactly and letterboxes, so a
+       portrait or very wide file never overflows and hides the video's control bar */
+    &__viewer {
+        @apply relative overflow-hidden border border-surface-border bg-surface-base;
+        height: clamp(16rem, 70vh, 48rem);
+    }
+
+    &__media {
+        @apply block h-full w-full object-contain;
+    }
+
+    /* Centered over the video while it's paused */
+    &__play {
+        @apply absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand text-xl text-content-primary transition-transform;
+
+        &:hover {
+            @apply scale-110;
+        }
+
+        &:focus-visible {
+            @apply outline outline-2 outline-offset-2 outline-brand;
+        }
+
+        i {
+            @apply translate-x-0.5;
+        }
+    }
+
+    &__card {
+        @apply block min-w-0;
+    }
+
+    &__section {
+        @apply flex flex-col gap-3 p-4;
+    }
+
+    &__heading {
+        @apply flex items-center gap-2 text-sm font-semibold text-content-primary;
+    }
+
+    &__file-name {
+        @apply flex min-w-0 items-center justify-between gap-2 text-sm text-brand;
+
+        span:first-child {
+            @apply truncate;
+        }
+    }
+
+    &__version {
+        @apply shrink-0 border border-surface-border px-1.5 text-xs text-content-secondary !font-mono;
+    }
+
+    &__label {
+        @apply text-label font-semibold uppercase tracking-[0.14em] text-content-muted !font-mono;
+    }
+
+    &__link-field {
+        @apply w-full truncate border border-surface-border bg-surface-base px-3 py-2 text-xs text-content-secondary outline-none !font-mono;
+
+        &:focus {
+            @apply border-brand;
+        }
+    }
+
+    &__actions {
+        @apply flex flex-wrap gap-2;
+    }
+
+    &__button {
+        @apply flex items-center gap-2;
+    }
+
+    &__details {
+        @apply flex flex-col;
+    }
+
+    &__row {
+        @apply grid grid-cols-[7rem_minmax(0,1fr)] gap-3 border-b border-surface-border py-2 text-sm;
+
+        dt {
+            @apply text-content-muted;
+        }
+
+        dd {
+            @apply break-words text-right text-content-primary;
+        }
+    }
+
+    &__description,
+    &__tags-block {
+        @apply flex flex-col gap-2 pt-1;
+    }
+
+    &__description-head {
+        @apply flex items-center justify-between;
+    }
+
+    &__description-text {
+        @apply whitespace-pre-wrap break-words text-sm text-content-secondary;
+    }
+
+    &__description-form {
+        @apply flex flex-col gap-2;
+    }
+
+    &__description-actions {
+        @apply flex items-center justify-end gap-3;
+    }
+
+    &__textarea {
+        @apply w-full resize-y border border-surface-border bg-surface-base px-3 py-2 text-sm text-content-primary outline-none transition-colors;
+
+        &::placeholder {
+            @apply text-content-muted;
+        }
+
+        &:focus {
+            @apply border-brand;
+        }
+    }
+
+    &__hint {
+        @apply mr-auto text-xs text-content-muted;
+    }
+
+    &__tags {
+        @apply flex flex-wrap gap-1;
+    }
+
+    &__tag {
+        @apply border border-surface-border bg-surface-hover px-1.5 py-0.5 text-xs text-content-secondary;
+    }
+
+    &__error {
+        @apply mb-3 text-sm text-status-crit;
+    }
+
+    &__link {
+        @apply text-xs font-semibold text-brand underline;
+
+        &:hover {
+            @apply text-content-primary;
+        }
+    }
+
+    &__message {
+        @apply flex flex-col items-center gap-3 px-3 py-20 text-center text-content-muted;
+    }
+
+    &__message-icon {
+        @apply text-3xl;
+    }
+
+    &__message-title {
+        @apply text-lg font-semibold text-content-primary;
+    }
+}

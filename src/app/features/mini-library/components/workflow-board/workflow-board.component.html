@@ -1,0 +1,198 @@
+<div class="page workflow-board">
+    <app-page-header [eyebrow]="page().title" [title]="page().title" [subtitle]="page().subtitle">
+        <ntv-button
+            size="xl"
+            [shadow]="false"
+            [disabled]="!taxonomy()"
+            data-testid="workflow-add"
+            (buttonClick)="isAdding.set(true)">
+            <span class="workflow-board__add">
+                <i class="fa-sharp fa-regular fa-cloud-arrow-up" aria-hidden="true"></i>
+                {{ page().addLabel }}
+            </span>
+        </ntv-button>
+    </app-page-header>
+
+    <!-- Status tiles: counts per status, and the status filter -->
+    <div class="workflow-board__tiles" role="group" aria-label="Filter by status">
+        @for (tile of statusTiles(); track tile.value) {
+            <button
+                type="button"
+                class="workflow-board__tile workflow-board__tile--{{ tile.value }}"
+                [class.workflow-board__tile--active]="status() === tile.value"
+                [attr.aria-pressed]="status() === tile.value"
+                (click)="status.set(tile.value)">
+                <span class="workflow-board__tile-head">
+                    <i
+                        class="workflow-board__tile-icon fa-sharp fa-regular fa-{{ tile.icon }}"
+                        aria-hidden="true"></i>
+                    {{ tile.label }}
+                </span>
+                <span class="workflow-board__tile-count">{{ tile.count }}</span>
+                <span class="workflow-board__tile-description">{{ tile.description }}</span>
+            </button>
+        }
+    </div>
+
+    <ntv-card [config]="cardConfig" class="workflow-board__card">
+        <div class="workflow-board__filters">
+            <ntv-input
+                class="workflow-board__search"
+                [placeholder]="searchPlaceholder()"
+                [formControl]="searchControl"
+                [clearable]="true"
+                [nativeAutocomplete]="false"
+                data-testid="workflow-search">
+                <i
+                    left-icon
+                    class="workflow-board__search-icon fa-sharp fa-regular fa-magnifying-glass"
+                    aria-hidden="true"></i>
+            </ntv-input>
+
+            @if (subcategoryOptions().length) {
+                <app-filter-menu
+                    [label]="subcategoryLabel()"
+                    [options]="subcategoryOptions()"
+                    [value]="subcategoryId()"
+                    (valueChange)="selectSubcategory($event)" />
+            }
+            @if (subcategory(); as subcategory) {
+                @if (topicOptions().length) {
+                    <app-filter-menu
+                        [label]="subcategory.topicLabel ?? 'Topic'"
+                        [options]="topicOptions()"
+                        [value]="topicId()"
+                        (valueChange)="topicId.set($event)" />
+                }
+            }
+
+            <div class="workflow-board__controls">
+                <app-sort-control
+                    [label]="'Sort ' + page().noun + ' content'"
+                    [options]="sortOptions"
+                    [value]="sort()"
+                    (valueChange)="sort.set($event)"
+                    [direction]="sortDirection()"
+                    (directionChange)="sortDirection.set($event)" />
+            </div>
+        </div>
+
+        @if (taxonomy() === null) {
+            <p class="workflow-board__notice">
+                {{ taxonomyError() }}
+                <button type="button" class="workflow-board__retry" (click)="retry()">Retry</button>
+            </p>
+        }
+        @if (statusError(); as error) {
+            <p class="workflow-board__notice" role="alert">
+                {{ error }}
+                <button type="button" class="workflow-board__retry" (click)="statusError.set(null)">
+                    Dismiss
+                </button>
+            </p>
+        }
+
+        @if (list() === undefined) {
+            <ul class="workflow-list" aria-hidden="true">
+                @for (row of skeletonRows; track row) {
+                    <li class="workflow-list__row workflow-list__row--skeleton">
+                        <ntv-skeleton variant="custom" width="100%" height="54px" />
+                        <div class="workflow-list__name">
+                            <ntv-skeleton variant="custom" width="60%" height="15px" />
+                            <ntv-skeleton variant="custom" width="40%" height="12px" />
+                        </div>
+                        <ntv-skeleton variant="custom" width="90px" height="24px" />
+                        <ntv-skeleton variant="custom" width="80px" height="12px" />
+                    </li>
+                }
+            </ul>
+        } @else if (list() === null) {
+            <div class="workflow-board__message workflow-board__message--error">
+                <p>{{ listError() }}</p>
+                <button type="button" class="workflow-board__retry" (click)="retry()">Retry</button>
+            </div>
+        } @else if (list()!.assets.length === 0) {
+            <div class="workflow-board__message">
+                <p>
+                    No {{ page().noun }} content here yet. Upload some with "{{ page().addLabel }}",
+                    or change the filters.
+                </p>
+            </div>
+        } @else {
+            <ul class="workflow-list">
+                @for (asset of list()!.assets; track asset.id) {
+                    <li class="workflow-list__row" data-testid="workflow-row">
+                        <div class="workflow-list__thumbnail">
+                            @if (asset.fileType === 'mp4') {
+                                <video
+                                    [src]="asset.fileUrl + '#t=0.5'"
+                                    muted
+                                    playsinline
+                                    preload="metadata"
+                                    aria-hidden="true"
+                                    tabindex="-1"></video>
+                                <span class="workflow-list__play" aria-hidden="true">
+                                    <i class="fa-sharp fa-regular fa-play"></i>
+                                </span>
+                            } @else {
+                                <img
+                                    [src]="asset.thumbnailUrl"
+                                    alt=""
+                                    loading="lazy"
+                                    (error)="onThumbnailError($event)" />
+                            }
+                        </div>
+
+                        <div class="workflow-list__name">
+                            <!-- Opens the asset's page in a new tab; its click area covers the row (status menu excepted) -->
+                            <a
+                                class="workflow-list__title"
+                                [routerLink]="['/asset', asset.id]"
+                                target="_blank"
+                                rel="noopener">
+                                {{ asset.title }}
+                            </a>
+                            <span class="workflow-list__location">
+                                {{ location(asset) }} · v{{ asset.version }} ·
+                                <span class="workflow-list__type">{{ asset.fileType }}</span>
+                            </span>
+                            @if (asset.tags.length) {
+                                <span class="workflow-list__tags">{{
+                                    asset.tags.join(' · ')
+                                }}</span>
+                            }
+                        </div>
+
+                        @if (asset.status; as assetStatus) {
+                            <app-status-menu
+                                class="workflow-list__status"
+                                [status]="assetStatus"
+                                [busy]="savingIds().has(asset.id)"
+                                [label]="'Status of ' + asset.title"
+                                (statusChange)="changeStatus(asset, $event)" />
+                        }
+
+                        <div class="workflow-list__dates">
+                            <span>Uploaded {{ asset.updatedAt | date: 'MMM d, y' }}</span>
+                            @if (asset.statusUpdatedAt) {
+                                <span class="workflow-list__since">
+                                    Status since {{ asset.statusUpdatedAt | date: 'MMM d, h:mm a' }}
+                                </span>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </ntv-card>
+
+    @if (isAdding() && taxonomy(); as taxonomy) {
+        <app-asset-upload
+            [taxonomy]="taxonomy"
+            [defaultCategoryId]="page().categoryId"
+            [defaultSubcategoryId]="subcategoryId() === all ? null : subcategoryId()"
+            [defaultTopicId]="topicId() === all ? null : topicId()"
+            (saved)="onAssetsSaved()"
+            (closed)="isAdding.set(false)" />
+    }
+</div>

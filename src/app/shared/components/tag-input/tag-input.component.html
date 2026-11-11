@@ -1,0 +1,27 @@
+<div class="tag-input" [class.tag-input--disabled]="disabled()">
+    @for (tag of tags(); track tag; let i = $index) {
+        <span class="tag-input__tag">
+            <span class="tag-input__text">{{ tag }}</span>
+            <button
+                type="button"
+                class="tag-input__remove"
+                [attr.aria-label]="'Remove tag ' + tag"
+                [disabled]="disabled()"
+                (click)="remove(i)">
+                <i class="fa-sharp fa-regular fa-xmark" aria-hidden="true"></i>
+            </button>
+        </span>
+    }
+    <input
+        type="text"
+        class="tag-input__field"
+        [attr.aria-label]="label()"
+        [placeholder]="isFull() ? 'Tag limit reached' : placeholder()"
+        [value]="draft()"
+        [attr.maxlength]="maxLength()"
+        [disabled]="disabled() || isFull()"
+        autocomplete="off"
+        (keydown)="onKeydown($event)"
+        (input)="onInput($event)"
+        (blur)="onBlur()" />
+</div>

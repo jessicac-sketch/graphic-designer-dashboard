@@ -1,0 +1,20 @@
+/**
+ * Design rule: sharp corners everywhere.
+ *
+ * The UI uses square (pointy) corners on every element. Enforced globally so it also
+ * covers component-pantry internals, many of which hard-code their radius or have no
+ * radius input. Do not add border-radius anywhere; this rule wins regardless.
+ *
+ * Exception: `.report-art` marks a preview of a generated report (slide previews). It
+ * shows the report's own design, not the app's, so it keeps the report's rounded corners.
+ *
+ * `#app-sharp-corners` (an id no element has) gives the rule ID-level specificity: a
+ * plain `*` rule loses to the pantry's own `!important` radii on more specific selectors
+ * (date picker selected days, round skeletons, the table's column-settings button).
+ * Programmatic Reports addition - worth upstreaming to gbp-management-tool-ui.
+ */
+*:not(.report-art, .report-art *, #app-sharp-corners),
+*:not(.report-art, .report-art *, #app-sharp-corners)::before,
+*:not(.report-art, .report-art *, #app-sharp-corners)::after {
+    border-radius: 0 !important;
+}

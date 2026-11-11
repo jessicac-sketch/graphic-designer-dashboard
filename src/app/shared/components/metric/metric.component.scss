@@ -1,0 +1,181 @@
+:host {
+    @apply block;
+}
+
+/* Clickable tile (e.g. jumps to the number's breakdown): pointer, brand frame on hover
+   and keyboard focus */
+:host(.metric-host--clickable) {
+    @apply cursor-pointer outline-none;
+
+    /* Room on the right for the arrow, so it never sits on the content (e.g. the
+       Received tile's POP buckets) */
+    .metric {
+        @apply relative pr-7 transition-colors;
+    }
+
+    &:hover .metric,
+    &:focus-visible .metric {
+        @apply border-brand;
+    }
+
+    /* The "goes somewhere" arrow nudges down toward the breakdown */
+    &:hover .metric__go,
+    &:focus-visible .metric__go {
+        @apply translate-y-0.5 text-brand;
+    }
+}
+
+/* Lower-right arrow on a clickable tile, so it reads as a link without hovering */
+.metric__go {
+    @apply pointer-events-none absolute bottom-2 right-2.5 text-xs text-content-muted transition;
+}
+
+.metric {
+    @apply flex h-full flex-col gap-1 border border-l-2 border-surface-border bg-surface-base px-3 py-2.5;
+
+    &__text {
+        @apply flex flex-col gap-1;
+    }
+
+    &__label {
+        @apply flex items-center gap-2 text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    &__icon {
+        @apply w-4 text-center text-sm text-content-secondary;
+    }
+
+    /* Info icon with a tooltip shown on hover and keyboard focus */
+    &__info {
+        @apply relative flex cursor-help items-center text-content-muted outline-none;
+
+        &:hover,
+        &:focus-visible {
+            @apply text-brand;
+        }
+    }
+
+    /*
+     * Opens above the icon, from its left edge, wrapping long hints. Hidden with
+     * `display: none` (not just invisible/transparent): an invisible tooltip still takes
+     * up layout, and on a tile near the right edge it made the whole page scroll
+     * sideways. (Programmatic Reports fix; worth upstreaming to gbp.)
+     */
+    &__tooltip {
+        @apply pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-max max-w-[240px] border border-surface-border bg-surface-raised px-2 py-1 text-label font-normal normal-case tracking-normal text-content-primary !font-sans;
+    }
+
+    &__info:hover &__tooltip,
+    &__info:focus-visible &__tooltip {
+        @apply block;
+    }
+
+    &__value {
+        @apply whitespace-nowrap text-3xl font-bold tabular-nums text-content-primary;
+    }
+
+    /* "407 / 420": a second, related number after the value - smaller, in the accent */
+    &__secondary {
+        @apply text-xl text-brand;
+    }
+
+    /* Clickable secondary value (e.g. "1 unknown" opens the list): underlined like a link */
+    &__secondary-button {
+        @apply text-brand underline decoration-dotted underline-offset-4 transition-colors;
+
+        &:hover,
+        &:focus-visible {
+            @apply text-brand-strong decoration-solid outline-none;
+        }
+    }
+
+    /* Names the secondary value, in the same accent: "Unique venues / devices" */
+    &__secondary-label {
+        @apply -ml-1 text-brand;
+    }
+
+    /* Spaced with margins, not whitespace: the clickable number is a button, and the
+       whitespace between it and the slash gets trimmed */
+    &__divider {
+        @apply mx-1.5 font-normal text-content-muted;
+    }
+
+    /* Stacked: label (with its info icon), then a large value (unwrap the text group to reorder) */
+    &--stacked &__text {
+        @apply contents;
+    }
+
+    &--stacked &__label {
+        @apply order-1;
+    }
+
+    &--stacked &__value {
+        @apply order-2;
+    }
+
+    /* Inline: label (with its info icon) on the left, value on the right, in one short row */
+    /* With an aside: [label over value] beside the aside when it fits, the aside wrapped
+       underneath when it doesn't - so long numbers never overflow the tile. items-start
+       (not items-center) keeps both blocks' own labels flush at the top - centering them
+       pushed the aside's label down relative to the main block's, since the main block
+       (label + big value) is taller than the aside (label + buckets row). */
+    &--with-aside {
+        @apply flex-row flex-wrap items-start justify-between gap-x-6 gap-y-3;
+    }
+
+    &__main {
+        @apply flex shrink-0 flex-col gap-1;
+    }
+
+    &__aside {
+        @apply min-w-0;
+    }
+
+    &--inline {
+        @apply flex-row items-center justify-between gap-4 px-4 py-3.5;
+    }
+
+    &--inline &__text {
+        @apply min-w-0 flex-1;
+    }
+
+    &--inline &__label {
+        @apply gap-3 text-xs;
+    }
+
+    &--inline &__icon {
+        @apply text-base;
+    }
+
+    &--inline &__value {
+        @apply ml-auto text-3xl;
+    }
+
+    &--brand {
+        @apply border-l-brand;
+    }
+
+    &--brand &__value {
+        @apply text-brand;
+    }
+
+    &--good {
+        @apply border-l-status-good;
+    }
+
+    &--warn {
+        @apply border-l-status-warn;
+    }
+
+    &--warn &__value {
+        @apply text-status-warn;
+    }
+
+    &--crit {
+        @apply border-l-status-crit;
+    }
+
+    &--crit &__value {
+        @apply text-status-crit;
+    }
+}

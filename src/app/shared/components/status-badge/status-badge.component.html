@@ -1,0 +1,6 @@
+@if (info(); as info) {
+    <span class="status-badge status-badge--{{ info.value }}" [title]="info.description">
+        <i class="status-badge__icon fa-sharp fa-regular fa-{{ info.icon }}" aria-hidden="true"></i>
+        {{ info.label }}
+    </span>
+}

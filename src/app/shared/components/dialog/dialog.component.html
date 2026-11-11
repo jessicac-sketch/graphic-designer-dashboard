@@ -1,0 +1,53 @@
+<ntv-modal
+    customClass="app-dialog"
+    [isVisible]="visible()"
+    [modalWidth]="width()"
+    [showHeader]="true"
+    [showFooter]="true"
+    [closeOnBackdrop]="closeOnBackdrop()"
+    [preventClose]="busy()"
+    (modalClose)="close()">
+    <header modal-header class="app-dialog__header">
+        <!-- ntv-modal labels its panel with #modal-title; only the open dialog claims it -->
+        <h2 class="app-dialog__title" [attr.id]="visible() ? 'modal-title' : null">
+            {{ title() }}
+        </h2>
+        <button
+            type="button"
+            class="app-dialog__close"
+            aria-label="Close"
+            [disabled]="busy()"
+            (click)="close()">
+            <i class="fa-sharp fa-regular fa-xmark" aria-hidden="true"></i>
+        </button>
+    </header>
+
+    <ng-content />
+
+    <footer modal-footer class="app-dialog__footer">
+        <ntv-button
+            variant="outline"
+            size="xl"
+            [shadow]="false"
+            [disabled]="busy()"
+            (buttonClick)="close()">
+            {{ cancelLabel() }}
+        </ntv-button>
+        @if (actionLabel(); as label) {
+            <ntv-button
+                size="xl"
+                [variant]="actionTone()"
+                [shadow]="false"
+                [loading]="busy()"
+                [disabled]="actionDisabled()"
+                (buttonClick)="runAction()">
+                <span class="app-dialog__action">
+                    @if (actionIcon(); as icon) {
+                        <i class="fa-sharp fa-regular fa-{{ icon }}" aria-hidden="true"></i>
+                    }
+                    {{ label }}
+                </span>
+            </ntv-button>
+        }
+    </footer>
+</ntv-modal>

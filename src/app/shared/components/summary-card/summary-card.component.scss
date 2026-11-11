@@ -1,0 +1,63 @@
+:host {
+    @apply block h-full;
+}
+
+/* ntv-card wraps the card and is inline by default; make it fill the grid cell */
+.summary-card__frame {
+    @apply block h-full;
+}
+
+.summary-card {
+    @apply flex h-full flex-col;
+    container: summary-card / inline-size;
+
+    /* Header and body are separated by a full-width rule. It wraps when the card is
+       narrow (title, sort control and "View all" on separate lines) instead of squeezing */
+    &__header {
+        @apply flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-surface-border px-5 py-4;
+    }
+
+    &__icon {
+        @apply flex h-8 w-8 shrink-0 items-center justify-center border border-brand bg-brand-soft text-sm text-brand;
+    }
+
+    &__title {
+        @apply text-sm font-bold text-content-primary;
+    }
+
+    &__preview {
+        @apply border border-surface-border px-1.5 py-px text-micro font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    /* One-line instruction, centered in the space between the title and the right side;
+       shown only when the card is wide enough for it not to be squeezed to a sliver */
+    &__hint {
+        @apply hidden min-w-0 flex-1 truncate text-center text-xs text-content-muted;
+
+        @container summary-card (min-width: 56rem) {
+            @apply block;
+        }
+    }
+
+    /* Controls beside the title (e.g. a search); empty when nothing is projected */
+    &__tools {
+        @apply ml-4 flex items-center gap-3 empty:hidden;
+    }
+
+    /* Pushes the action (and View all) to the right; empty when nothing is projected */
+    &__action {
+        @apply ml-auto flex items-center empty:hidden;
+    }
+
+    &__link {
+        @apply ml-auto flex items-center gap-2 text-label font-semibold uppercase tracking-wider text-content-muted transition-colors !font-mono;
+
+        &:hover {
+            @apply text-brand;
+        }
+    }
+
+    &__body {
+        @apply flex flex-1 flex-col gap-5 p-5;
+    }
+}

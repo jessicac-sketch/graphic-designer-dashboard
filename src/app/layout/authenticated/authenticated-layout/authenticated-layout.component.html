@@ -1,0 +1,27 @@
+<div class="app-shell">
+    <app-sidebar class="app-shell__sidebar" [collapsed]="isSidebarCollapsed()" />
+
+    <div class="app-shell__main">
+        <app-topbar
+            [toggleLabel]="sidebarToggleLabel()"
+            [expanded]="isNavExpanded()"
+            (sidebarToggle)="onSidebarToggle()" />
+
+        <main class="app-shell__content">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
+</div>
+
+<ntv-offcanvas [(visible)]="isMobileNavOpen" position="left">
+    <app-sidebar (navigate)="isMobileNavOpen.set(false)" />
+</ntv-offcanvas>
+
+@if (isNavigating()) {
+    <div class="app-shell__nav-overlay" role="status">
+        <i
+            class="app-shell__nav-spinner fa-sharp fa-regular fa-spinner-third fa-spin"
+            aria-hidden="true"></i>
+        <span class="app-shell__nav-text">Please wait…</span>
+    </div>
+}

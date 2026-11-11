@@ -1,0 +1,23 @@
+/* Renders nothing when there's no notice, so it adds no gap to the page then */
+:host {
+    @apply contents;
+}
+
+/* Warning box: tinted with the warning color (not the neutral surface) so it stands out
+   from the cards; as wide as its text */
+.range-notice {
+    @apply m-0 flex w-fit max-w-full items-center gap-3 border border-l-4 border-status-warn px-4 py-3 text-sm font-medium text-content-primary;
+    background-color: color-mix(in srgb, var(--app-status-warn) 18%, transparent);
+
+    &__label {
+        @apply shrink-0 bg-status-warn px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-black;
+    }
+
+    &__dismiss {
+        @apply ml-2 shrink-0 cursor-pointer border-0 bg-transparent px-1 text-lg leading-none text-content-primary transition-opacity;
+
+        &:hover {
+            @apply opacity-70;
+        }
+    }
+}

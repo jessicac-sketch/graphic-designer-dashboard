@@ -1,0 +1,131 @@
+:host {
+    @apply block;
+}
+
+.share-list {
+    @apply flex flex-col gap-3;
+
+    /* Rows carry their own padding (below), so no gap between them */
+    &__items {
+        @apply flex flex-col;
+
+        /* "Show all" keeps the collapsed height (set inline) and scrolls inside it,
+           so the card never grows */
+        &--expanded {
+            @apply overflow-y-auto pr-1;
+        }
+    }
+
+    /* Every row, selectable or not, is the same padded box, so all lists match in size;
+       only the selected row is tinted. No negative margins: they stuck out of the list
+       and, once "Show all" made it scrollable, added a sideways scrollbar. */
+    &__item {
+        @apply flex items-center gap-3 px-3 py-2.5;
+
+        /* Selectable rows (e.g. pick an ad to see its states): hover tints the row */
+        &--selectable {
+            @apply cursor-pointer outline-none transition-colors;
+
+            &:hover,
+            &:focus-visible {
+                @apply bg-surface-hover;
+            }
+        }
+
+        /* Selected: brand tint with a brand edge drawn inside the row (an inset shadow,
+           not a border, so the content doesn't move) - like the sidebar's active link */
+        &--selected {
+            @apply bg-brand-soft;
+            box-shadow: inset 2px 0 0 var(--app-brand);
+
+            &:hover,
+            &:focus-visible {
+                @apply bg-brand-soft;
+            }
+        }
+    }
+
+    &__rank {
+        @apply flex h-6 w-6 shrink-0 items-center justify-center border border-surface-border text-label font-bold tabular-nums text-content-secondary;
+    }
+
+    &__item:first-child &__rank {
+        @apply border-brand bg-brand-soft text-brand;
+    }
+
+    &__thumb {
+        @apply block h-9 w-16 shrink-0 bg-surface-border;
+    }
+
+    &__thumb-media {
+        @apply block h-full w-full object-cover;
+    }
+
+    &__body {
+        @apply flex min-w-0 flex-1 flex-col gap-1.5;
+    }
+
+    &__row {
+        @apply flex items-end justify-between gap-3;
+    }
+
+    &__label {
+        @apply flex min-w-0 flex-col;
+    }
+
+    &__name {
+        @apply truncate text-sm text-content-primary;
+
+        &--link:hover {
+            @apply text-brand underline;
+        }
+    }
+
+    &__caption {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__figures {
+        @apply flex shrink-0 flex-col items-end;
+    }
+
+    &__percent {
+        @apply text-sm font-semibold tabular-nums text-content-primary;
+    }
+
+    &__value {
+        @apply text-xs tabular-nums text-content-muted;
+    }
+
+    &__bar {
+        @apply block h-1 w-full bg-surface-border;
+    }
+
+    &__bar-fill {
+        @apply block h-full bg-content-muted;
+    }
+
+    &__item:first-child &__bar-fill {
+        @apply bg-brand;
+    }
+
+    &__toggle {
+        @apply flex items-center gap-2 self-start text-label font-semibold uppercase tracking-wider text-content-muted transition-colors !font-mono;
+
+        &:hover {
+            @apply text-brand;
+        }
+    }
+
+    &__toggle-icon {
+        @apply text-micro transition-transform;
+
+        &--open {
+            @apply rotate-180;
+        }
+    }
+
+    &__empty {
+        @apply text-xs text-content-muted;
+    }
+}

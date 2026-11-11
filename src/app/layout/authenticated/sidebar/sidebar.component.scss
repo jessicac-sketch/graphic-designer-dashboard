@@ -1,0 +1,104 @@
+.sidebar {
+    @apply flex h-full w-64 flex-col gap-6 overflow-y-auto overflow-x-hidden border-r border-surface-border bg-surface-raised px-4 py-5 transition-[width];
+
+    &__brand {
+        @apply min-w-0 px-2;
+
+        &--compact {
+            @apply flex justify-center px-0;
+        }
+    }
+
+    /* Folded: the square NTV360 mark (1660x1413), 32px wide */
+    &__mark {
+        @apply block h-auto w-8;
+    }
+
+    /* Icon-only rail: centered icons, labels as tooltips */
+    &--collapsed {
+        @apply w-16 items-center px-2;
+    }
+
+    &--collapsed &__nav {
+        @apply w-full;
+    }
+
+    &--collapsed &__link {
+        @apply justify-center px-0;
+    }
+
+    &--collapsed &__version {
+        @apply justify-center px-0;
+    }
+
+    &__label {
+        @apply px-2 text-label font-semibold uppercase tracking-[0.14em] text-content-muted !font-mono;
+    }
+
+    &__nav {
+        @apply flex flex-col gap-1;
+    }
+
+    &__link {
+        @apply relative flex items-center gap-3 px-3 py-2 text-sm font-medium text-content-muted transition-colors;
+
+        &:hover {
+            @apply bg-surface-hover text-content-primary;
+        }
+
+        &--active {
+            @apply bg-brand-soft text-content-primary;
+
+            &::before {
+                @apply absolute inset-y-1.5 left-0 w-0.5 bg-brand content-[''];
+            }
+        }
+    }
+
+    &__link-icon {
+        @apply w-4 text-center text-sm;
+    }
+
+    &__link--active &__link-icon {
+        @apply text-brand;
+    }
+
+    &__link-label {
+        @apply flex-1;
+    }
+
+    &__badge {
+        @apply border border-brand px-1.5 py-px text-micro font-semibold uppercase tracking-wide text-brand !font-mono;
+    }
+
+    /* mt-auto here (not on &__footer) pushes both this and the footer to the
+       bottom together, with the footer's own border-t sitting right below this -
+       "above that line" in the footer screenshot. */
+    &__time-toggle {
+        @apply mt-auto flex gap-1 bg-surface-base p-1;
+    }
+
+    &__time-toggle-option {
+        @apply flex-1 px-2 py-1.5 text-xs font-medium text-content-muted transition-colors;
+
+        &:hover {
+            @apply text-content-primary;
+        }
+
+        &--active {
+            @apply bg-brand-soft text-brand;
+        }
+    }
+
+    &__footer {
+        @apply flex flex-col gap-3 border-t border-surface-border pt-4;
+    }
+
+    &__version {
+        @apply flex items-center justify-between px-3 text-label text-content-muted;
+    }
+
+    &__version-number {
+        @apply border border-surface-border px-1.5 py-px font-semibold tabular-nums text-content-secondary;
+    }
+}

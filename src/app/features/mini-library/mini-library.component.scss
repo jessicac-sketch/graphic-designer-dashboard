@@ -1,0 +1,214 @@
+/* Card grid columns follow the content area's own width (sidebar excluded), not the
+   window's - see docs/STANDARDS.md (Responsive card layouts). */
+.mini-library {
+    container: mini-library / inline-size;
+
+    &__card {
+        @apply block min-w-0;
+    }
+
+    &__add {
+        @apply flex items-center gap-2;
+    }
+
+    &__tabs {
+        @apply block overflow-x-auto px-3 pt-2;
+    }
+
+    /* One row of filters above the list, wrapping on narrow screens: search grows, the
+       order and layout controls sit at the right end */
+    &__filters {
+        @apply flex flex-wrap items-center gap-2 border-b border-surface-border p-3;
+    }
+
+    &__search {
+        @apply block min-w-[14rem] flex-1;
+    }
+
+    &__search-icon {
+        @apply text-xs text-content-muted;
+    }
+
+    &__controls {
+        @apply ml-auto flex flex-wrap items-center gap-2;
+    }
+
+    &__breadcrumb {
+        @apply flex min-w-0 flex-wrap items-center gap-2 px-3 pt-3 text-sm text-content-muted;
+    }
+
+    &__breadcrumb-current {
+        @apply font-semibold text-content-primary;
+    }
+
+    &__breadcrumb-separator {
+        @apply text-micro;
+    }
+
+    &__total {
+        @apply ml-1 border border-surface-border px-1.5 text-label font-semibold tabular-nums text-content-secondary;
+    }
+
+    &__message {
+        @apply flex flex-col items-center gap-3 px-3 py-12 text-center text-content-muted;
+
+        &--error {
+            @apply text-status-crit;
+        }
+    }
+
+    &__notice {
+        @apply border-b border-surface-border p-3 text-sm text-status-crit;
+    }
+
+    &__retry {
+        @apply ml-1 font-semibold text-brand underline;
+
+        &:hover {
+            @apply text-content-primary;
+        }
+    }
+}
+
+/* Equal columns so every card (and its 16:9 preview) is the same size: more columns as
+   the content area widens, measured on the page container, not the window. */
+.library-grid {
+    @apply grid grid-cols-2 gap-3 p-3;
+
+    @container mini-library (min-width: 40rem) {
+        @apply grid-cols-3;
+    }
+
+    @container mini-library (min-width: 60rem) {
+        @apply grid-cols-4;
+    }
+
+    @container mini-library (min-width: 80rem) {
+        @apply grid-cols-6;
+    }
+}
+
+.asset-card {
+    @apply relative flex min-w-0 flex-col border border-surface-border bg-surface-raised transition-colors;
+
+    /* Outlines, not lift/shadow: brighten the frame on hover or keyboard focus */
+    &:hover,
+    &:focus-within {
+        @apply border-brand;
+    }
+
+    /* The title's button opens the preview; its ::after stretches over the whole card */
+    &__open {
+        @apply block max-w-full truncate text-left outline-none;
+
+        &::after {
+            @apply absolute inset-0 z-[2] cursor-pointer content-[''];
+        }
+    }
+
+    &--skeleton:hover {
+        @apply border-surface-border;
+    }
+
+    &__thumbnail {
+        @apply relative w-full overflow-hidden bg-surface-base;
+        aspect-ratio: 16 / 9;
+
+        img,
+        video {
+            @apply block h-full w-full object-cover;
+        }
+    }
+
+    &__skeleton {
+        @apply block h-full;
+    }
+
+    /* Tags drawn over the preview: a translucent dark chip so they read on any image */
+    &__type {
+        @apply absolute right-2 top-2 px-2 py-0.5 text-micro font-semibold uppercase text-content-primary !font-mono;
+        background-color: color-mix(in srgb, var(--app-surface-base) 80%, transparent);
+    }
+
+    &__play {
+        @apply absolute inset-0 m-auto flex h-10 w-10 items-center justify-center text-sm text-content-primary;
+        background-color: color-mix(in srgb, var(--app-surface-base) 70%, transparent);
+    }
+
+    &__body {
+        @apply flex flex-col gap-1 p-3;
+    }
+
+    &__title {
+        @apply truncate text-sm font-semibold text-content-primary;
+    }
+
+    &__meta {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__status {
+        @apply my-0.5 self-start;
+    }
+
+    /* At most two rows of tags, so cards in a row keep the same height */
+    &__tags {
+        @apply mt-1 flex max-h-[2.75rem] flex-wrap gap-1 overflow-hidden;
+    }
+
+    &__tag {
+        @apply max-w-full truncate border border-surface-border bg-surface-hover px-1.5 py-0.5 text-micro text-content-secondary;
+    }
+}
+
+.library-list {
+    @apply flex flex-col p-3;
+
+    &__row {
+        @apply relative grid items-center gap-3 border-b border-surface-border px-3 py-2 transition-colors;
+        grid-template-columns: 4rem minmax(0, 1fr) auto auto;
+
+        &:last-child {
+            @apply border-b-0;
+        }
+
+        &:hover,
+        &:focus-within {
+            @apply bg-surface-hover;
+        }
+    }
+
+    &__thumbnail {
+        @apply block w-16 bg-surface-base object-cover;
+        aspect-ratio: 16 / 9;
+    }
+
+    &__name {
+        @apply flex min-w-0 flex-col;
+    }
+
+    /* Opens the asset page in a new tab; its ::after stretches over the whole row */
+    &__title {
+        @apply block max-w-full truncate text-left text-sm font-semibold text-content-primary outline-none;
+
+        &::after {
+            @apply absolute inset-0 cursor-pointer content-[''];
+        }
+    }
+
+    &__location {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__tags {
+        @apply truncate text-xs text-content-secondary;
+    }
+
+    &__type {
+        @apply border border-surface-border px-1.5 text-micro font-semibold uppercase text-content-secondary !font-mono;
+    }
+
+    &__date {
+        @apply whitespace-nowrap text-xs tabular-nums text-content-muted;
+    }
+}

@@ -1,0 +1,11 @@
+/* TypeScript config for the Express BFF (src/server). Used for type-checking; bundling is done by scripts/build-server.mjs. */
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./out-tsc/server",
+        "noEmit": true,
+        "lib": ["ES2022"],
+        "types": ["node"]
+    },
+    "include": ["src/server/**/*.ts"]
+}

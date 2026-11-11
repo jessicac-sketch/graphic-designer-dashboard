@@ -1,0 +1,41 @@
+<!-- Nothing rendered (or loaded) while switched off on this page -->
+@if (!isOff()) {
+    <div
+        class="topbar-stats"
+        role="region"
+        aria-label="Totals for the selected range"
+        [attr.aria-hidden]="isHidden()"
+        [attr.inert]="isHidden() ? '' : null">
+        <!-- On the Dashboard, the Dashboard's range (synced with its header); elsewhere the
+             top bar's own (dated only - no "All time") -->
+        <app-range-menu [compact]="true" placement="bottom-start" [source]="rangeSource()" />
+
+        <!-- While the totals are being fetched (the numbers that are reloading also dim) -->
+        @if (isLoading()) {
+            <span class="topbar-stats__loading" role="status" data-testid="topbar-stats-loading">
+                <i class="fa-sharp fa-regular fa-spinner-third fa-spin" aria-hidden="true"></i>
+                <span class="topbar-stats__sr-only">Loading totals…</span>
+            </span>
+        }
+
+        @for (stat of stats(); track stat.target) {
+            <!-- On the Dashboard each number jumps to its breakdown; elsewhere it's plain text -->
+            <button
+                type="button"
+                class="topbar-stats__stat"
+                [class.topbar-stats__stat--loading]="stat.loading"
+                [class.topbar-stats__stat--link]="viewState.dashboardActive()"
+                [disabled]="!viewState.dashboardActive()"
+                [attr.title]="
+                    viewState.dashboardActive() ? 'Go to the ' + stat.label + ' breakdown' : null
+                "
+                [attr.data-testid]="'topbar-stat-' + stat.target"
+                (click)="viewState.jumpRequests.next(stat.target)">
+                <span class="topbar-stats__label">{{ stat.label }}</span>
+                <span class="topbar-stats__value">{{
+                    stat.value === null ? '–' : (stat.value | number)
+                }}</span>
+            </button>
+        }
+    </div>
+}

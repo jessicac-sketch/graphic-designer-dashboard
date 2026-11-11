@@ -1,0 +1,63 @@
+/* Not on phones (md and up only); scrolls sideways if the bar is too narrow, instead of
+   pushing the user menu away */
+:host {
+    @apply hidden min-w-0 md:flex md:justify-center;
+}
+
+.topbar-stats {
+    @apply flex min-w-0 items-center gap-x-5 overflow-x-auto whitespace-nowrap transition duration-200;
+
+    /* A one-line summary, smaller than the Dashboard's tiles */
+    /* A button so it can jump to the Dashboard's breakdown; elsewhere disabled and
+       styled as plain text */
+    &__stat {
+        @apply flex shrink-0 cursor-default items-baseline gap-1.5 py-0.5 transition;
+
+        &--loading {
+            @apply opacity-50;
+        }
+
+        /* Clickable (on the Dashboard): the value gets a dotted underline so it reads as
+           a link without hovering; solid and orange on hover / keyboard focus */
+        &--link {
+            @apply cursor-pointer outline-none;
+
+            .topbar-stats__value {
+                @apply underline decoration-content-muted decoration-dotted underline-offset-4;
+            }
+
+            &:hover .topbar-stats__value,
+            &:focus-visible .topbar-stats__value {
+                @apply text-brand decoration-brand decoration-solid;
+            }
+        }
+    }
+
+    /* Spinner after the range menu while the totals load */
+    &__loading {
+        @apply flex shrink-0 items-center text-sm text-brand;
+    }
+
+    &__sr-only {
+        @apply sr-only;
+    }
+
+    &__label {
+        @apply text-micro font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    &__value {
+        @apply text-sm font-bold tabular-nums text-content-primary;
+    }
+}
+
+/* On the Dashboard while its tiles are on screen: faded out (kept in place, so the top
+   bar doesn't shift when it comes back) */
+:host(.topbar-stats--hidden) .topbar-stats {
+    @apply pointer-events-none -translate-y-1 opacity-0;
+}
+
+/* Other pages, while showOnlyOnDashboard is on: not shown (and takes no room) */
+:host(.topbar-stats--off) {
+    @apply hidden;
+}

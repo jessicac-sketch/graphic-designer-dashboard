@@ -1,0 +1,15 @@
+.section-error {
+    @apply flex items-center justify-between gap-4 border border-l-2 border-surface-border border-l-status-crit bg-surface-raised p-4 text-sm text-content-secondary;
+
+    &__message {
+        @apply m-0;
+    }
+
+    &__retry {
+        @apply shrink-0 border border-status-crit px-4 py-2 text-sm font-medium text-status-crit transition-colors;
+
+        &:hover {
+            @apply bg-surface-hover;
+        }
+    }
+}

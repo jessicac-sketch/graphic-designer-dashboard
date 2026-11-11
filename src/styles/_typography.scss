@@ -1,0 +1,15 @@
+/**
+ * App fonts, everywhere: DM Sans (--app-font-family), and DM Mono (--app-font-mono) for
+ * small uppercase labels (`@apply !font-mono` with `uppercase`).
+ *
+ * component-pantry hard-codes Nunito on every component host (and again on some inner
+ * elements such as table cells), so a body-level font is not enough. This applies the
+ * app font to every element except Font Awesome icons, which need their own icon font,
+ * and `.brand-font` elements, which preview a business's own fonts (set inline).
+ *
+ * `:where()` keeps this rule at zero specificity, so an element's own `!font-mono`
+ * (an important class rule) wins over it, while the pantry's non-important fonts lose.
+ */
+:where(*:not([class*='fa-']):not(.brand-font)) {
+    font-family: var(--app-font-family) !important;
+}

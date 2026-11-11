@@ -1,0 +1,36 @@
+@if (tiles().length > 0) {
+    <ul class="slot-grid">
+        @for (tile of tiles(); track tile.key) {
+            <li class="slot-grid__tile">
+                <span class="slot-grid__shot">
+                    @if (tile.screenshot) {
+                        <img class="slot-grid__shot-media" [src]="tile.screenshot" alt="" />
+                    } @else {
+                        <span class="slot-grid__no-shot">--</span>
+                    }
+                </span>
+
+                <div class="slot-grid__body">
+                    <div class="slot-grid__head">
+                        <span class="slot-grid__position">
+                            <span class="slot-grid__label">Slot</span>
+                            {{ tile.position }}
+                        </span>
+                        <span class="slot-grid__plays">
+                            {{ tile.plays | number }}
+                            <span class="slot-grid__unit">plays</span>
+                        </span>
+                    </div>
+                    <span class="slot-grid__id" [title]="tile.contentId">{{
+                        tile.contentIdLabel
+                    }}</span>
+                    <span class="slot-grid__meta" [title]="tile.latest"
+                        >{{ tile.share }} · {{ tile.latest }}</span
+                    >
+                </div>
+            </li>
+        }
+    </ul>
+} @else {
+    <p class="slot-grid__empty">{{ emptyText() }}</p>
+}

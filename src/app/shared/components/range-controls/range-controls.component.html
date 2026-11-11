@@ -1,0 +1,14 @@
+<app-range-menu [allowAllTime]="allowAllTime()" />
+<div class="range-controls__picker" [class.range-controls__picker--disabled]="disabled()">
+    <ntv-date-range-picker
+        [variant]="'single'"
+        [canSelectPrevDates]="true"
+        (dates)="rangeService.applyPicked($event)"
+        (cleared)="rangeService.applyPreset('yesterday')" />
+    @if (disabled()) {
+        <span class="range-controls__overlay" role="status" data-testid="range-controls-overlay">
+            <i class="fa-sharp fa-regular fa-spinner-third fa-spin" aria-hidden="true"></i>
+            <span class="range-controls__sr-only">Loading…</span>
+        </span>
+    }
+</div>

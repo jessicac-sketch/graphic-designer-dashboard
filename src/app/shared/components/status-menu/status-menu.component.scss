@@ -1,0 +1,64 @@
+:host {
+    @apply block shrink-0;
+}
+
+.status-menu {
+    @apply flex items-center gap-2 border border-transparent p-1 transition-colors;
+
+    &:hover:not(:disabled) {
+        @apply border-surface-border bg-surface-hover;
+    }
+
+    &:focus-visible {
+        @apply border-brand outline-none;
+    }
+
+    &:disabled {
+        @apply cursor-wait;
+    }
+
+    &__chevron {
+        @apply text-micro text-content-muted transition-transform;
+
+        &--open {
+            @apply rotate-180;
+        }
+    }
+
+    /* The menu (rendered by ntv-popover in document.body; these nodes keep this
+       component's scoped attribute, so the styles still apply) */
+    &__panel {
+        @apply flex flex-col border border-surface-border bg-surface-raised p-1.5 shadow-xl;
+    }
+
+    &__item {
+        @apply relative flex w-full items-center gap-3 px-3 py-2 text-left transition-colors;
+
+        &:hover {
+            @apply bg-surface-hover;
+        }
+
+        &--active {
+            @apply bg-brand-soft;
+
+            &::before {
+                @apply absolute inset-y-1.5 left-0 w-0.5 bg-brand content-[''];
+            }
+        }
+    }
+
+    &__description {
+        @apply text-xs text-content-secondary;
+    }
+}
+
+/* The popover shell around the menu: no frame of its own - same as <app-range-menu>'s */
+::ng-deep .ntv-popover:has(.status-menu__panel) {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    .ntv-popover__content {
+        padding: 0 !important;
+    }
+}

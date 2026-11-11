@@ -1,0 +1,42 @@
+<ntv-card
+    variant="default"
+    size="custom"
+    customWidth="100%"
+    rounded="none"
+    shadow="none"
+    [fullWidth]="true">
+    <section class="summary-card">
+        <header class="summary-card__header">
+            <span class="summary-card__icon">
+                <i class="fa-sharp fa-regular fa-{{ icon() }}" aria-hidden="true"></i>
+            </span>
+            <h2 class="summary-card__title">{{ title() }}</h2>
+
+            <!-- Optional controls right after the title, e.g. a search: <ntv-input card-tools …> -->
+            <div class="summary-card__tools">
+                <ng-content select="[card-tools]"></ng-content>
+            </div>
+
+            <!-- Optional one-line instruction, centered in the header -->
+            @if (hint(); as text) {
+                <p class="summary-card__hint">{{ text }}</p>
+            }
+
+            <!-- Optional header action, e.g. an Edit button: <button card-action>…</button> -->
+            <div class="summary-card__action">
+                <ng-content select="[card-action]"></ng-content>
+            </div>
+
+            @if (route(); as link) {
+                <a class="summary-card__link" [routerLink]="link">
+                    View all
+                    <i class="fa-sharp fa-regular fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            }
+        </header>
+
+        <div class="summary-card__body">
+            <ng-content></ng-content>
+        </div>
+    </section>
+</ntv-card>

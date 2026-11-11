@@ -1,0 +1,335 @@
+<div class="page">
+    <app-page-header
+        eyebrow="Venue"
+        [title]="profile()?.hostName ?? 'Venue'"
+        [subtitle]="subtitle()">
+        <!-- Same range as the Dashboard and Ranking Data (Yesterday by default) -->
+        <app-range-controls [disabled]="isLoadingProfile()" [allowAllTime]="true" />
+    </app-page-header>
+
+    <app-range-notice />
+
+    <div class="venue-profile__top">
+        <div class="venue-profile__card">
+            @if (isLoadingProfile()) {
+                <p class="venue-profile__loading">Loading venue profile...</p>
+            } @else if (profile(); as venue) {
+                <div class="venue-profile__card-header">
+                    <div>
+                        <h2 class="venue-profile__card-title">{{ venue.hostName }}</h2>
+                        <span class="venue-profile__id">{{ venue.venueId }}</span>
+                    </div>
+                    <span class="venue-profile__category-pill">{{ venue.category }}</span>
+                </div>
+
+                <div class="venue-profile__info-grid">
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-tag"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Category</span>
+                            <span class="venue-profile__info-value">{{ venue.category }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-location-dot"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Address</span>
+                            <span class="venue-profile__info-value">{{ venue.address }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-city"></i>
+                        <div>
+                            <span class="venue-profile__info-label">City</span>
+                            <span class="venue-profile__info-value">{{ venue.city }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-map"></i>
+                        <div>
+                            <span class="venue-profile__info-label">State</span>
+                            <span class="venue-profile__info-value">{{ venue.state }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-mailbox-flag-up"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Postal Code</span>
+                            <span class="venue-profile__info-value">{{ venue.postalCode }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-user"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Contact</span>
+                            <span class="venue-profile__info-value">
+                                @if (venue.contactPerson && venue.contactNumber) {
+                                    {{ venue.contactPerson }} &middot;
+                                    {{ venue.contactNumber }}
+                                } @else {
+                                    {{ venue.contactPerson || venue.contactNumber || '--' }}
+                                }
+                            </span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-clock"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Timezone</span>
+                            <span class="venue-profile__info-value">{{ venue.timeZone }}</span>
+                        </div>
+                    </div>
+                    @if (venue.venueType) {
+                        <div class="venue-profile__info-item">
+                            <i class="fa-sharp fa-regular fa-store"></i>
+                            <div>
+                                <span class="venue-profile__info-label">Venue Type</span>
+                                <span class="venue-profile__info-value">{{ venue.venueType }}</span>
+                            </div>
+                        </div>
+                    }
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-calendar-clock"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Today's Hours</span>
+                            <span class="venue-profile__info-value">{{
+                                venue.businessHoursSchedule ?? '--'
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-chart-line"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Expected Requests</span>
+                            <span class="venue-profile__info-value">{{
+                                venue.expectedRequests | number
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="venue-profile__info-item">
+                        <i class="fa-sharp fa-regular fa-tv"></i>
+                        <div>
+                            <span class="venue-profile__info-label">Slot Count</span>
+                            <span class="venue-profile__info-value">{{
+                                venue.slotCount | number
+                            }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="venue-profile__devices">
+                    <span class="venue-profile__info-label"
+                        >Devices ({{ venue.deviceIds.length }})</span
+                    >
+                    @if (venue.deviceIds.length > 0) {
+                        <div class="venue-profile__devices-list">
+                            @for (deviceId of venue.deviceIds; track deviceId) {
+                                <span class="venue-profile__device-chip">
+                                    <i class="fa-sharp fa-regular fa-tv"></i>
+                                    {{ truncateDeviceId(deviceId) }}
+                                    <app-copy-button [value]="deviceId" />
+                                </span>
+                            }
+                        </div>
+                    } @else {
+                        <span class="venue-profile__info-value"
+                            >No devices recorded for this range.</span
+                        >
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="venue-profile__chart-card">
+            <div class="venue-profile__chart-header">
+                <h3 class="venue-profile__panel-subtitle">
+                    {{
+                        isHourlyView()
+                            ? 'Hourly Ads Received by Device'
+                            : 'Daily Ads Received by Device'
+                    }}
+                </h3>
+                <span class="venue-profile__chart-total">Total: {{ totalAdsSum() | number }}</span>
+            </div>
+            <app-daily-ads-bar-chart
+                [data]="dailyAdsSummary()"
+                [loading]="isLoadingDailyAdsSummary()"
+                [showUniqueVenues]="false"
+                [deviceSeries]="deviceSeries()" />
+        </div>
+    </div>
+
+    <ntv-card [config]="tableCardConfig" class="venue-profile__table-card">
+        <div class="venue-profile__table-content">
+            @if (adsStats(); as stats) {
+                <div class="venue-profile__mini-stats venue-profile__stats">
+                    <button
+                        type="button"
+                        class="venue-profile__mini-stat"
+                        [class.venue-profile__mini-stat--active]="activeBucketFilter() === null"
+                        (click)="clearBucketFilter()"
+                        data-testid="venue-profile-stat-total">
+                        <span class="venue-profile__mini-stat-label">Total:</span>
+                        <span class="venue-profile__mini-stat-value">{{
+                            stats.total | number
+                        }}</span>
+                    </button>
+                    <span class="venue-profile__mini-stat-separator">/</span>
+                    <button
+                        type="button"
+                        class="venue-profile__mini-stat"
+                        [class.venue-profile__mini-stat--active]="activeBucketFilter() === 'green'"
+                        (click)="toggleBucketFilter('green')"
+                        data-testid="venue-profile-stat-green">
+                        <span
+                            class="venue-profile__mini-stat-swatch venue-profile__mini-stat-swatch--green"></span>
+                        <span class="venue-profile__mini-stat-value">{{
+                            stats.green | number
+                        }}</span>
+                    </button>
+                    <span class="venue-profile__mini-stat-separator">/</span>
+                    <button
+                        type="button"
+                        class="venue-profile__mini-stat"
+                        [class.venue-profile__mini-stat--active]="activeBucketFilter() === 'yellow'"
+                        (click)="toggleBucketFilter('yellow')"
+                        data-testid="venue-profile-stat-yellow">
+                        <span
+                            class="venue-profile__mini-stat-swatch venue-profile__mini-stat-swatch--yellow"></span>
+                        <span class="venue-profile__mini-stat-value">{{
+                            stats.yellow | number
+                        }}</span>
+                    </button>
+                    <span class="venue-profile__mini-stat-separator">/</span>
+                    <button
+                        type="button"
+                        class="venue-profile__mini-stat"
+                        [class.venue-profile__mini-stat--active]="activeBucketFilter() === 'red'"
+                        (click)="toggleBucketFilter('red')"
+                        data-testid="venue-profile-stat-red">
+                        <span
+                            class="venue-profile__mini-stat-swatch venue-profile__mini-stat-swatch--red"></span>
+                        <span class="venue-profile__mini-stat-value">{{ stats.red | number }}</span>
+                    </button>
+                </div>
+            }
+
+            <ntv-skeleton variant="card" width="100%" height="575px" [loading]="isLoadingAds()">
+                <div skeleton-content>
+                    <ntv-table
+                        #adsTable
+                        [columns]="adsColumns"
+                        [data]="adsData()"
+                        [totalDataLength]="adsTotalCount()"
+                        (showMoreRequested)="loadMoreAds()"
+                        (tableStateChange)="onAdsStateChange($event)"
+                        [tableTitle]="''"
+                        [filterEnabled]="true"
+                        [showItemCount]="true"
+                        [showColumnSettings]="false"
+                        [loadingOverlayEnabled]="true"
+                        [tableHeight]="'575px'"
+                        [defaultMinWidth]="100"
+                        [hasCheckBox]="false"
+                        storageKey="venue-profile-ads-columns"
+                        data-testid="venue-profile-ads-table">
+                        <ng-template #body let-rowData let-columns="columns">
+                            <tr
+                                class="pop-row"
+                                [style.--pop-row-color]="popDurationRowColor(rowData)">
+                                @for (col of columns; track col.field) {
+                                    <td>
+                                        @if (col.field === 'creative') {
+                                            @if (rowData['mediaUrl']) {
+                                                @if (rowData['creativeType'] === 'video') {
+                                                    <video
+                                                        [src]="rowData['mediaUrl']"
+                                                        muted
+                                                        playsinline
+                                                        preload="metadata"
+                                                        class="creative-thumbnail creative-thumbnail--clickable"
+                                                        (click)="
+                                                            openMedia($event, rowData['mediaUrl'])
+                                                        "></video>
+                                                } @else {
+                                                    <img
+                                                        [src]="rowData['mediaUrl']"
+                                                        [alt]="rowData['creativeId']"
+                                                        class="creative-thumbnail creative-thumbnail--clickable"
+                                                        (click)="
+                                                            openMedia($event, rowData['mediaUrl'])
+                                                        " />
+                                                }
+                                            } @else {
+                                                <div
+                                                    class="creative-thumbnail creative-thumbnail--placeholder"></div>
+                                            }
+                                        } @else if (col.field === 'screenshot') {
+                                            @if (rowData['popScreenshot']) {
+                                                <img
+                                                    [src]="rowData['popScreenshot']"
+                                                    [alt]="'Proof of play screenshot'"
+                                                    class="creative-thumbnail creative-thumbnail--clickable"
+                                                    (click)="
+                                                        openMedia($event, rowData['popScreenshot'])
+                                                    " />
+                                            } @else {
+                                                <!-- No screenshot yet: "--" in a thumbnail-sized box,
+                                                     so the column stays aligned -->
+                                                <div
+                                                    class="creative-thumbnail creative-thumbnail--empty"
+                                                    title="No screenshot yet">
+                                                    --
+                                                </div>
+                                            }
+                                        } @else if (col.field === 'creativeId') {
+                                            <span class="cell-with-copy">
+                                                <span>{{ truncate(rowData[col.field]) }}</span>
+                                                <app-copy-button [value]="rowData[col.field]" />
+                                            </span>
+                                        } @else if (col.field === 'trackerId') {
+                                            @if (rowData[col.field]) {
+                                                <span class="cell-with-copy">
+                                                    <span>{{ truncate(rowData[col.field]) }}</span>
+                                                    <app-copy-button [value]="rowData[col.field]" />
+                                                </span>
+                                            } @else {
+                                                <span>--</span>
+                                            }
+                                        } @else if (col.field === 'deviceId') {
+                                            <span class="cell-with-copy">
+                                                <span>{{ truncate(rowData[col.field]) }}</span>
+                                                <app-copy-button [value]="rowData[col.field]" />
+                                            </span>
+                                        } @else if (
+                                            col.field === 'fetchedAt' ||
+                                            col.field === 'dateServed' ||
+                                            col.field === 'proofOfPlaySent'
+                                        ) {
+                                            <span>{{
+                                                timeDisplayService.formatTimestamp(
+                                                    rowData[col.field]
+                                                )
+                                            }}</span>
+                                        } @else if (col.field === 'served') {
+                                            <span>{{ rowData[col.field] ? 'Yes' : 'No' }}</span>
+                                        } @else if (col.field === 'popDurationMinutes') {
+                                            <span>{{ formatPopDuration(rowData) }}</span>
+                                        } @else if (
+                                            col.field === 'slotPlaylistContentId' ||
+                                            col.field === 'slotPlaylistContentPosition'
+                                        ) {
+                                            <span>{{ rowData[col.field] ?? 'N/A' }}</span>
+                                        } @else {
+                                            <span>{{ rowData[col.field] }}</span>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        </ng-template>
+                    </ntv-table>
+                </div>
+            </ntv-skeleton>
+        </div>
+    </ntv-card>
+</div>

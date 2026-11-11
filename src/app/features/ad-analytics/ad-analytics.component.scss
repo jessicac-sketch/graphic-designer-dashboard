@@ -1,0 +1,260 @@
+// Matches RankingDataComponent's own .table-cell-link - duplicated here since
+// Angular component styles are encapsulated, not inherited.
+.table-cell-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--app-brand);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.ad-analytics {
+    &__card {
+        @apply w-full;
+        margin-bottom: 0.75rem;
+    }
+
+    &__content {
+        @apply p-8 flex gap-8;
+
+        @media (max-width: 768px) {
+            @apply flex-col;
+        }
+    }
+
+    &__thumbnail-section {
+        @apply flex-shrink-0 w-1/3 bg-black flex items-center justify-center;
+
+        @media (max-width: 768px) {
+            @apply w-full;
+        }
+    }
+
+    &__thumbnail {
+        @apply w-full;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+
+    &__info-section {
+        @apply flex-1 flex flex-col gap-6;
+    }
+
+    &__top-section {
+        @apply flex gap-6 pb-4 border-b border-surface-border;
+
+        @media (max-width: 768px) {
+            @apply flex-col;
+        }
+    }
+
+    &__header-info {
+        @apply flex flex-col gap-2 flex-1;
+    }
+
+    &__breakdown {
+        @apply mb-3 block;
+    }
+
+    /* States 20% | venues (in the picked state) 25% | the picked venue's playlist slots, the
+       rest. Follows the card's own width (not the window's, which overstates the room beside
+       the sidebar): stacked, then states | venues with the slots below them, then all three
+       in a row. */
+    &__breakdown-grid {
+        @apply grid grid-cols-1 gap-5;
+
+        @container summary-card (min-width: 40rem) {
+            @apply grid-cols-2 gap-6;
+        }
+
+        @container summary-card (min-width: 64rem) {
+            @apply grid-cols-[minmax(0,22.5fr)_minmax(0,22.5fr)_minmax(0,55fr)];
+        }
+    }
+
+    &__breakdown-col {
+        @apply flex min-w-0 flex-col gap-3;
+
+        /* Stacked: a rule above every column after the first */
+        &:not(:first-child) {
+            @apply border-t border-surface-border pt-5;
+        }
+
+        @container summary-card (min-width: 40rem) {
+            &:nth-child(2) {
+                @apply border-l border-t-0 pl-6 pt-0;
+            }
+
+            &:nth-child(3) {
+                @apply col-span-2;
+            }
+        }
+
+        @container summary-card (min-width: 64rem) {
+            &:nth-child(3) {
+                @apply col-span-1 border-l border-t-0 pl-6 pt-0;
+            }
+        }
+    }
+
+    &__breakdown-title {
+        @apply flex min-w-0 items-baseline gap-1.5 text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    /* The name inside a column title: same size and font as the title, bold, in the
+       accent color (case kept, so file names and IDs read as-is) */
+    &__breakdown-name {
+        @apply min-w-0 truncate font-bold normal-case text-brand;
+    }
+
+    &__breakdown-note {
+        @apply text-xs text-content-muted;
+    }
+
+    &__title {
+        @apply text-2xl font-bold text-content-primary;
+    }
+
+    &__id {
+        @apply text-sm text-content-muted font-medium;
+    }
+
+    &__details-grid {
+        @apply grid grid-cols-2 gap-6;
+
+        @media (max-width: 768px) {
+            @apply grid-cols-1;
+        }
+    }
+
+    &__detail-item {
+        @apply flex flex-col gap-1;
+    }
+
+    &__detail-label {
+        @apply text-sm font-medium text-content-muted;
+    }
+
+    &__detail-value {
+        @apply text-base font-semibold text-content-primary;
+    }
+
+    &__tabs-section {
+        @apply mt-0;
+    }
+
+    // Tabs on the left, the export button at the right end (Ranking Data's tabs row)
+    &__tabs-bar {
+        @apply mb-6 md:flex md:items-center md:gap-6;
+    }
+
+    &__tabs-actions {
+        @apply mt-3 flex justify-end md:mt-0 md:shrink-0;
+    }
+
+    &__tabs {
+        @apply block min-w-0 md:flex-1;
+    }
+
+    &__records-note {
+        @apply mt-3 text-sm text-content-muted;
+    }
+
+    &__play-records {
+        @apply mt-5;
+    }
+
+    &__play-record-row {
+        @apply cursor-pointer transition-colors hover:bg-surface-hover;
+    }
+
+    &__pop-legend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    &__search-input {
+        border: 1px solid var(--app-surface-border);
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        min-width: 280px;
+    }
+
+    &__pop-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid var(--app-surface-border);
+        background-color: var(--app-surface-base);
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--app-content-secondary);
+        cursor: pointer;
+
+        &--active {
+            @apply border-brand bg-brand-soft text-content-primary;
+        }
+    }
+
+    &__pop-legend-swatch {
+        display: inline-block;
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
+    &__pop-legend-clear {
+        @apply text-brand;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    &__locations {
+        @apply mt-5;
+    }
+
+    &__section-title {
+        @apply text-xl font-bold text-content-primary mb-4;
+    }
+
+    &__table {
+        // ntv-table's :host has no explicit display, so as a custom element it
+        // can default to inline layout and ignore width/overflow rules here,
+        // letting the wide table push the whole page out horizontally instead
+        // of scrolling within its own internal wrapper.
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+
+        .play-record-screenshot {
+            width: 100px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        // 15 rows (the header ~48px, a row ~75px with its 50px screenshot), then it scrolls
+        &--play-records ::ng-deep .table-wrapper {
+            max-height: calc(48px + 15 * 75px);
+        }
+    }
+}
+
+// Highlight play record rows by proof-of-play duration.
+// --pop-row-color is set inline per row; the rule is a no-op when it's unset.
+::ng-deep .pop-row td {
+    background-color: rgba(var(--pop-row-color), 0.15) !important;
+}

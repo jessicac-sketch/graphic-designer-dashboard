@@ -1,0 +1,89 @@
+:host {
+    @apply block shrink-0;
+}
+
+/* Button: 40px like the date picker beside it, calendar icon, the preset's name and its
+   dates */
+.range-menu {
+    @apply flex h-10 items-center gap-2 whitespace-nowrap border border-field-border bg-field-bg px-3.5 text-sm transition-colors;
+
+    &:hover {
+        @apply border-content-muted;
+    }
+
+    &:focus-visible {
+        @apply border-brand outline-none;
+    }
+
+    /* In the top bar: 32px, smaller text */
+    &--compact {
+        @apply h-8 gap-1.5 px-2.5 text-xs;
+    }
+
+    &__icon {
+        @apply text-brand;
+    }
+
+    &__label {
+        @apply font-semibold text-content-primary;
+    }
+
+    &__dates {
+        @apply text-content-muted;
+    }
+
+    &__chevron {
+        @apply ml-1 text-micro text-content-muted transition-transform;
+
+        &--open {
+            @apply rotate-180;
+        }
+    }
+
+    /* The menu (rendered by ntv-popover in document.body; these nodes keep this
+       component's scoped attribute, so the styles still apply) */
+    &__panel {
+        @apply flex flex-col border border-surface-border bg-surface-raised p-1.5 shadow-xl;
+    }
+
+    /* Like the sidebar's links: the active one tinted with a brand edge */
+    &__item {
+        @apply relative flex w-full items-center justify-between gap-6 px-3 py-2 text-left text-sm text-content-secondary transition-colors;
+
+        &:hover:not(:disabled) {
+            @apply bg-surface-hover text-content-primary;
+        }
+
+        &:disabled {
+            @apply cursor-default;
+        }
+
+        &--active {
+            @apply bg-brand-soft text-content-primary;
+
+            &::before {
+                @apply absolute inset-y-1.5 left-0 w-0.5 bg-brand content-[''];
+            }
+        }
+    }
+
+    &__item-label {
+        @apply font-medium;
+    }
+
+    &__item-dates {
+        @apply whitespace-nowrap text-xs tabular-nums text-content-muted;
+    }
+}
+
+/* The popover shell around the menu: no frame of its own (the panel has the border,
+   background and shadow) - same as the user menu's */
+::ng-deep .ntv-popover:has(.range-menu__panel) {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    .ntv-popover__content {
+        padding: 0 !important;
+    }
+}

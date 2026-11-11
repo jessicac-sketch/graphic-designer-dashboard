@@ -1,0 +1,78 @@
+/* Not encapsulated (the popover panel lives in document.body): keep every selector under .user-menu */
+.user-menu {
+    @apply flex items-center gap-3 px-2 py-1.5 text-left transition-colors;
+
+    &:hover {
+        @apply bg-surface-hover;
+    }
+
+    &__avatar {
+        @apply flex h-9 w-9 shrink-0 items-center justify-center bg-brand-soft text-xs font-bold text-brand ring-1 ring-brand;
+    }
+
+    &__identity {
+        @apply hidden min-w-0 flex-col sm:flex;
+    }
+
+    &__name {
+        @apply truncate text-sm font-semibold text-content-primary;
+    }
+
+    &__email {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__chevron {
+        @apply text-micro text-content-muted transition-transform;
+
+        &--open {
+            @apply rotate-180;
+        }
+    }
+
+    &__panel {
+        @apply flex flex-col border border-surface-border bg-surface-raised p-1.5 shadow-xl;
+    }
+
+    &__panel-header {
+        @apply flex flex-col border-b border-surface-border px-3 pb-2.5 pt-2;
+    }
+
+    &__item {
+        @apply mt-1 flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-content-secondary transition-colors;
+
+        &:hover:not(:disabled) {
+            @apply bg-surface-hover text-content-primary;
+        }
+
+        &:disabled {
+            @apply cursor-wait opacity-60;
+        }
+
+        &--danger:hover:not(:disabled) {
+            @apply text-red-400;
+        }
+    }
+
+    &__item-icon {
+        @apply w-4 text-center text-content-muted;
+    }
+
+    &__divider {
+        @apply my-1 h-px bg-surface-border;
+    }
+}
+
+/*
+ * The popover shell around the menu: no frame of its own (it added a gray border and
+ * padding around the panel); the panel above has the border, background and shadow.
+ */
+.ntv-popover:has(.user-menu__panel) {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    .ntv-popover__content {
+        padding: 0 !important;
+    }
+}

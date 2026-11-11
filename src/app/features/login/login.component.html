@@ -1,0 +1,53 @@
+<section class="login">
+    <ntv-card
+        class="login__card"
+        variant="default"
+        size="custom"
+        customWidth="100%"
+        rounded="none"
+        shadow="none"
+        [fullWidth]="true">
+        <div class="login__body">
+            <header class="login__header">
+                <app-brand size="lg" [caption]="caption" />
+                <span class="login__divider" aria-hidden="true"></span>
+                <h1 class="login__title">Sign in</h1>
+                <p class="login__subtitle">Sign in with the demo account (see README.md).</p>
+            </header>
+
+            <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+                <ntv-input
+                    id="login-email"
+                    type="email"
+                    label="Email"
+                    placeholder="demo@example.com"
+                    formControlName="email"
+                    [error]="getEmailError()"
+                    [variant]="getEmailError() ? 'error' : 'default'" />
+
+                <ntv-input
+                    id="login-password"
+                    type="password"
+                    label="Password"
+                    placeholder="Enter your password"
+                    formControlName="password"
+                    [error]="getPasswordError()"
+                    [variant]="getPasswordError() ? 'error' : 'default'" />
+
+                <ntv-button type="submit" size="xxl" [fullWidth]="true" [loading]="isSubmitting()">
+                    Sign in
+                </ntv-button>
+            </form>
+        </div>
+    </ntv-card>
+</section>
+
+@if (errorMessage(); as message) {
+    <ntv-toast
+        variant="error"
+        position="top-center"
+        data-testid="login-error"
+        [message]="message"
+        [duration]="5000"
+        (closed)="onToastClosed()" />
+}

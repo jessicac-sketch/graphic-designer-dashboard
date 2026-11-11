@@ -1,0 +1,95 @@
+<div class="share-list">
+    @if (items().length > 0) {
+        <ol
+            #list
+            class="share-list__items"
+            [class.share-list__items--expanded]="isExpanded()"
+            [style.max-height.px]="isExpanded() ? lockedHeight() : null">
+            @for (item of visibleItems(); track item.id; let rank = $index) {
+                <li
+                    class="share-list__item"
+                    [class.share-list__item--selectable]="selectable()"
+                    [class.share-list__item--selected]="selectable() && item.id === selectedId()"
+                    [attr.tabindex]="selectable() ? 0 : null"
+                    [attr.aria-pressed]="selectable() ? item.id === selectedId() : null"
+                    (click)="onSelect(item.id)"
+                    (keydown.enter)="onSelect(item.id)">
+                    <span class="share-list__rank">{{ rank + 1 }}</span>
+
+                    @if (showThumbnails()) {
+                        <span class="share-list__thumb">
+                            @if (item.imageUrl; as url) {
+                                @if (item.isVideo) {
+                                    <video
+                                        class="share-list__thumb-media"
+                                        [src]="url"
+                                        muted
+                                        playsinline
+                                        preload="metadata"></video>
+                                } @else {
+                                    <img class="share-list__thumb-media" [src]="url" alt="" />
+                                }
+                            }
+                        </span>
+                    }
+
+                    <div class="share-list__body">
+                        <div class="share-list__row">
+                            <span class="share-list__label">
+                                @if (item.route; as link) {
+                                    <a
+                                        class="share-list__name share-list__name--link"
+                                        [routerLink]="link"
+                                        [title]="item.fullName ?? item.name"
+                                        (click)="$event.stopPropagation()"
+                                        >{{ item.name }}</a
+                                    >
+                                } @else {
+                                    <span
+                                        class="share-list__name"
+                                        [title]="item.fullName ?? item.name"
+                                        >{{ item.name }}</span
+                                    >
+                                }
+                                @if (item.caption) {
+                                    <span class="share-list__caption">{{ item.caption }}</span>
+                                }
+                            </span>
+
+                            @if (showShares()) {
+                                <span class="share-list__figures">
+                                    <span class="share-list__percent">{{
+                                        formatShare(item.value)
+                                    }}</span>
+                                    <span class="share-list__value">{{
+                                        item.figure ?? (item.value | number) + ' ' + unit()
+                                    }}</span>
+                                </span>
+                            }
+                        </div>
+
+                        @if (showShares()) {
+                            <span class="share-list__bar">
+                                <span
+                                    class="share-list__bar-fill"
+                                    [style.width.%]="(item.value / maxValue()) * 100"></span>
+                            </span>
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+
+        @if (items().length > limit()) {
+            <button type="button" class="share-list__toggle" (click)="toggle()">
+                {{ isExpanded() ? 'Show top ' + limit() : 'Show all ' + (items().length | number) }}
+                <i
+                    class="fa-sharp fa-regular fa-chevron-down share-list__toggle-icon"
+                    [class.share-list__toggle-icon--open]="isExpanded()"
+                    aria-hidden="true"></i>
+            </button>
+        }
+    } @else {
+        <p class="share-list__empty">{{ emptyText() }}</p>
+    }
+</div>

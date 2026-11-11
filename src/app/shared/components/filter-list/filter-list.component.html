@@ -1,0 +1,35 @@
+<nav class="filter-list" [attr.aria-label]="label()">
+    <button
+        type="button"
+        class="filter-list__toggle"
+        [attr.aria-expanded]="isOpen()"
+        (click)="isOpen.set(!isOpen())">
+        <span class="filter-list__label">{{ label() }}</span>
+        @if (!isOpen() && activeFilter(); as active) {
+            <span class="filter-list__active">{{ active.label }} · {{ active.count }}</span>
+        }
+        <i
+            class="filter-list__chevron fa-sharp fa-regular fa-chevron-down"
+            [class.filter-list__chevron--open]="isOpen()"
+            aria-hidden="true"></i>
+    </button>
+
+    @if (isOpen()) {
+        <div class="filter-list__items">
+            @for (option of options(); track option.value) {
+                <button
+                    type="button"
+                    class="filter-list__item"
+                    [class.filter-list__item--active]="value() === option.value"
+                    [attr.aria-pressed]="value() === option.value"
+                    (click)="valueChange.emit(option.value)">
+                    <i
+                        class="filter-list__icon fa-sharp fa-regular fa-{{ option.icon }}"
+                        aria-hidden="true"></i>
+                    <span class="filter-list__name">{{ option.label }}</span>
+                    <span class="filter-list__count">{{ option.count }}</span>
+                </button>
+            }
+        </div>
+    }
+</nav>

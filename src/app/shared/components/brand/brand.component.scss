@@ -1,0 +1,23 @@
+.brand {
+    @apply flex flex-col gap-1.5;
+
+    &__logo {
+        @apply flex h-5;
+    }
+
+    &__caption {
+        @apply text-label font-semibold uppercase tracking-[0.14em] text-content-muted !font-mono;
+    }
+
+    &--lg {
+        @apply items-center gap-3;
+    }
+
+    &--lg &__logo {
+        @apply h-10;
+    }
+
+    &--lg &__caption {
+        @apply text-xs;
+    }
+}

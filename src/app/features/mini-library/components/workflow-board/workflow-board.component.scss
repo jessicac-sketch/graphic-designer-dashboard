@@ -1,0 +1,186 @@
+/* Tile and row layouts follow the content area's own width (sidebar excluded) - see
+   docs/STANDARDS.md (Responsive card layouts). */
+.workflow-board {
+    container: workflow / inline-size;
+
+    &__add {
+        @apply flex items-center gap-2;
+    }
+
+    /* All + one tile per status: 2 columns on a phone, all five in a row when there's room */
+    &__tiles {
+        @apply mb-3 grid grid-cols-2 gap-3;
+
+        @container workflow (min-width: 40rem) {
+            @apply grid-cols-3;
+        }
+
+        @container workflow (min-width: 64rem) {
+            @apply grid-cols-5;
+        }
+    }
+
+    &__tile {
+        @apply relative flex flex-col gap-1 border border-surface-border bg-surface-raised p-4 text-left transition-colors;
+
+        &:hover {
+            @apply border-content-muted;
+        }
+
+        &:focus-visible {
+            @apply border-brand outline-none;
+        }
+
+        &--active {
+            @apply border-brand bg-brand-soft;
+
+            &:hover {
+                @apply border-brand;
+            }
+        }
+    }
+
+    &__tile-head {
+        @apply flex items-center gap-2 text-label font-semibold uppercase tracking-[0.14em] text-content-secondary !font-mono;
+    }
+
+    &__tile-icon {
+        @apply text-xs;
+    }
+
+    &__tile--approval &__tile-icon {
+        @apply text-status-warn;
+    }
+
+    &__tile--live &__tile-icon {
+        @apply text-status-good;
+    }
+
+    &__tile-count {
+        @apply text-2xl font-bold tabular-nums text-content-primary;
+    }
+
+    &__tile-description {
+        @apply text-xs text-content-muted;
+    }
+
+    &__card {
+        @apply block min-w-0;
+    }
+
+    &__filters {
+        @apply flex flex-wrap items-center gap-2 border-b border-surface-border p-3;
+    }
+
+    &__search {
+        @apply block min-w-[14rem] flex-1;
+    }
+
+    &__search-icon {
+        @apply text-xs text-content-muted;
+    }
+
+    &__controls {
+        @apply ml-auto flex flex-wrap items-center gap-2;
+    }
+
+    &__notice {
+        @apply border-b border-surface-border px-3 py-2 text-sm text-status-crit;
+    }
+
+    &__message {
+        @apply flex flex-col items-center gap-3 px-3 py-12 text-center text-content-muted;
+
+        &--error {
+            @apply text-status-crit;
+        }
+    }
+
+    &__retry {
+        @apply ml-1 font-semibold text-brand underline;
+
+        &:hover {
+            @apply text-content-primary;
+        }
+    }
+}
+
+.workflow-list {
+    @apply flex flex-col p-3;
+
+    /* Thumbnail | name | status | dates; on a narrow screen the dates drop below */
+    &__row {
+        @apply relative grid items-center gap-x-4 gap-y-2 border-b border-surface-border px-3 py-3 transition-colors;
+        grid-template-columns: 6rem minmax(0, 1fr) auto;
+
+        @container workflow (min-width: 48rem) {
+            grid-template-columns: 6rem minmax(0, 1fr) auto 10rem;
+        }
+
+        &:last-child {
+            @apply border-b-0;
+        }
+
+        &:hover,
+        &:focus-within {
+            @apply bg-surface-hover;
+        }
+    }
+
+    &__thumbnail {
+        @apply relative w-24 overflow-hidden bg-surface-base;
+        aspect-ratio: 16 / 9;
+
+        img,
+        video {
+            @apply block h-full w-full object-cover;
+        }
+    }
+
+    &__play {
+        @apply absolute inset-0 m-auto flex h-7 w-7 items-center justify-center text-micro text-content-primary;
+        background-color: color-mix(in srgb, var(--app-surface-base) 70%, transparent);
+    }
+
+    &__name {
+        @apply flex min-w-0 flex-col gap-0.5;
+    }
+
+    /* Opens the asset page in a new tab; its ::after covers the row, under the status menu */
+    &__title {
+        @apply block max-w-full truncate text-left text-sm font-semibold text-content-primary outline-none;
+
+        &::after {
+            @apply absolute inset-0 cursor-pointer content-[''];
+        }
+    }
+
+    &__location {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__type {
+        @apply uppercase;
+    }
+
+    &__tags {
+        @apply truncate text-xs text-content-secondary;
+    }
+
+    /* Above the row's stretched preview button, so it stays clickable */
+    &__status {
+        @apply relative z-[1];
+    }
+
+    &__dates {
+        @apply col-span-full flex flex-col text-xs text-content-muted;
+
+        @container workflow (min-width: 48rem) {
+            @apply col-span-1 text-right;
+        }
+    }
+
+    &__since {
+        @apply text-content-secondary;
+    }
+}

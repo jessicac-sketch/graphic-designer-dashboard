@@ -1,0 +1,122 @@
+.top-ads-section {
+    margin-top: 0;
+
+    &__title {
+        @apply text-2xl font-bold text-content-primary mb-4;
+    }
+}
+
+.top-ad-card {
+    @apply w-full mb-3;
+    position: relative;
+    overflow: visible !important;
+
+    &__rank-badge {
+        position: absolute;
+        top: -12px;
+        left: -12px;
+        width: 48px;
+        height: 48px;
+        background-image: var(--app-brand-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--app-content-primary);
+        font-size: 1.25rem;
+        font-weight: bold;
+        z-index: 10;
+    }
+
+    &__content {
+        @apply flex gap-6 p-6;
+
+        @media (max-width: 768px) {
+            @apply flex-col;
+        }
+    }
+
+    &__thumbnail {
+        flex-shrink: 0;
+        width: 180px;
+        height: 132px;
+        background-color: black;
+        overflow: hidden;
+
+        @media (max-width: 768px) {
+            width: 100%;
+            height: 150px;
+        }
+
+        img,
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    &__info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    &__title {
+        @apply text-lg font-bold text-content-primary;
+        margin: 0;
+    }
+
+    &__stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1.5rem;
+
+        @media (max-width: 1280px) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (max-width: 1024px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    &__label {
+        @apply text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    &__value {
+        @apply text-xl font-bold tabular-nums text-content-primary;
+    }
+
+    &--chart {
+        min-width: 150px;
+    }
+
+    &__chart {
+        margin-top: 0.5rem;
+        height: 60px;
+    }
+}
+
+.analytics-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-3;
+}
+
+.analytics-card {
+    @apply w-full;
+}
+
+.analytics-chart-wrapper {
+    @apply p-6;
+}

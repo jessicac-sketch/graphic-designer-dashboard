@@ -1,0 +1,45 @@
+<button
+    #trigger
+    type="button"
+    class="user-menu"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="isOpen()"
+    (click)="menu.toggle($event, trigger)">
+    <span class="user-menu__avatar" aria-hidden="true">{{ displayName() | initials }}</span>
+    <span class="user-menu__identity">
+        <span class="user-menu__name">{{ displayName() }}</span>
+        <span class="user-menu__email">{{ email() }}</span>
+    </span>
+    <i
+        class="user-menu__chevron fa-sharp fa-regular fa-chevron-down"
+        [class.user-menu__chevron--open]="isOpen()"
+        aria-hidden="true"></i>
+</button>
+
+<ntv-popover
+    #menu
+    trigger="click"
+    placement="bottom-end"
+    minWidth="240px"
+    [arrow]="false"
+    (shown)="isOpen.set(true)"
+    (hidden)="isOpen.set(false)">
+    <div class="user-menu__panel" role="menu">
+        <div class="user-menu__panel-header">
+            <span class="user-menu__name">{{ displayName() }}</span>
+            <span class="user-menu__email">{{ email() }}</span>
+        </div>
+
+        <button
+            type="button"
+            class="user-menu__item user-menu__item--danger"
+            role="menuitem"
+            [disabled]="isLoggingOut()"
+            (click)="onLogout()">
+            <i
+                class="user-menu__item-icon fa-sharp fa-regular fa-right-from-bracket"
+                aria-hidden="true"></i>
+            {{ isLoggingOut() ? 'Logging out…' : 'Log out' }}
+        </button>
+    </div>
+</ntv-popover>

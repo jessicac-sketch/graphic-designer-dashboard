@@ -1,0 +1,44 @@
+<header class="topbar">
+    <div class="topbar__start">
+        <!-- Fold / unfold the sidebar (on narrow screens it opens the full menu drawer) -->
+        <button
+            type="button"
+            class="topbar__toggle"
+            data-testid="sidebar-toggle"
+            [attr.aria-label]="toggleLabel()"
+            [attr.aria-expanded]="expanded()"
+            [attr.title]="toggleLabel()"
+            (click)="sidebarToggle.emit()">
+            <!-- Sidebar panel: square outline, the left section filled in the accent color while
+                 the menu is open -->
+            <svg
+                class="topbar__icon"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="miter"
+                aria-hidden="true">
+                @if (expanded()) {
+                    <rect
+                        class="topbar__panel"
+                        x="2.75"
+                        y="3.75"
+                        width="4.5"
+                        height="12.5"
+                        stroke="none" />
+                }
+                <rect x="2.75" y="3.75" width="14.5" height="12.5" />
+                <line x1="7.25" y1="3.75" x2="7.25" y2="16.25" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- The Dashboard's totals (all pages; hidden on phones, and on the Dashboard while its
+         tiles are on screen) -->
+    <app-topbar-stats class="topbar__center" />
+
+    <div class="topbar__end">
+        <app-user-menu />
+    </div>
+</header>

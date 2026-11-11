@@ -1,0 +1,23 @@
+:host {
+    @apply flex flex-wrap items-center justify-end gap-3;
+}
+
+.range-controls__picker {
+    @apply relative;
+}
+
+/* ntv-date-range-picker has no `disabled` input: block it while a range loads */
+.range-controls__picker--disabled {
+    @apply pointer-events-none opacity-60;
+}
+
+/* Centered over the picker's trigger while a pick's request is in flight - blocks a
+   second pick from racing the first (disabled above) and gives visible feedback that
+   something is happening, instead of looking like the pick silently did nothing. */
+.range-controls__overlay {
+    @apply absolute inset-0 flex items-center justify-center text-base text-brand;
+}
+
+.range-controls__sr-only {
+    @apply sr-only;
+}

@@ -1,0 +1,16 @@
+:host {
+    @apply ml-auto shrink-0;
+}
+
+/* Normal case and the body font, whatever the title it sits in uses */
+.slot-stat {
+    @apply flex items-baseline gap-2 font-sans normal-case tracking-normal;
+
+    &__value {
+        @apply text-base font-bold tabular-nums text-content-primary;
+    }
+
+    &__label {
+        @apply text-xs font-normal text-content-muted;
+    }
+}

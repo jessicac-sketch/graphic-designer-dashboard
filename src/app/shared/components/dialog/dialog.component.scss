@@ -1,0 +1,52 @@
+/*
+ * Unencapsulated (see DialogComponent): every rule is scoped under .app-dialog, the
+ * class ntv-modal puts on its root through `customClass`. The !important flags beat
+ * ntv-modal's own encapsulated padding and the panel styles in _pantry-dark-fixes.scss.
+ */
+.app-dialog {
+    /* Panel edge to edge, so the header and footer rules span its full width */
+    .modal__content {
+        padding: 0 !important;
+        max-height: calc(100vh - 4rem);
+    }
+
+    /* Body: the projected content, scrolling when tall */
+    .modal__body {
+        @apply text-sm text-content-secondary;
+
+        margin: 0 !important;
+        padding: 1.25rem !important;
+        max-height: none !important;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    &__header {
+        @apply flex shrink-0 items-center justify-between gap-4 border-b border-surface-border px-5 py-3;
+    }
+
+    &__title {
+        @apply truncate text-base font-bold text-content-primary;
+    }
+
+    &__close {
+        @apply flex h-8 w-8 shrink-0 items-center justify-center text-content-muted transition-colors;
+
+        &:hover:not(:disabled) {
+            @apply bg-surface-hover text-content-primary;
+        }
+
+        &:disabled {
+            @apply cursor-not-allowed opacity-50;
+        }
+    }
+
+    &__footer {
+        @apply flex shrink-0 items-center justify-end gap-3 border-t border-surface-border px-5 py-3;
+    }
+
+    &__action {
+        @apply flex items-center gap-2;
+    }
+}

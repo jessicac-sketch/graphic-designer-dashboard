@@ -1,0 +1,28 @@
+:host {
+    @apply inline-flex;
+}
+
+.status-badge {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap border px-2 py-0.5 text-xs font-semibold;
+
+    &__icon {
+        @apply text-micro;
+    }
+
+    &--review {
+        @apply border-content-muted text-content-secondary;
+    }
+
+    &--approval {
+        @apply border-status-warn bg-brand-soft text-status-warn;
+    }
+
+    &--ready {
+        @apply border-content-primary text-content-primary;
+    }
+
+    &--live {
+        @apply border-status-good text-status-good;
+        background-color: color-mix(in srgb, var(--app-status-good) 12%, transparent);
+    }
+}

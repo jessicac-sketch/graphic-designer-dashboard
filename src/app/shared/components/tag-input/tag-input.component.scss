@@ -1,0 +1,40 @@
+:host {
+    @apply block;
+}
+
+/* Styled like ntv-input: 40px min height, field tokens, brand edge on focus */
+.tag-input {
+    @apply flex min-h-10 w-full flex-wrap items-center gap-1.5 border border-field-border bg-field-bg px-2 py-1.5 transition-colors;
+
+    &:focus-within {
+        @apply border-brand;
+    }
+
+    &--disabled {
+        @apply opacity-50;
+    }
+
+    &__tag {
+        @apply flex max-w-full items-center gap-1 border border-surface-border bg-surface-hover py-0.5 pl-2 pr-1 text-xs font-medium text-content-primary;
+    }
+
+    &__text {
+        @apply truncate;
+    }
+
+    &__remove {
+        @apply flex h-5 w-5 flex-shrink-0 items-center justify-center text-micro text-content-muted transition-colors;
+
+        &:hover:not(:disabled) {
+            @apply text-content-primary;
+        }
+    }
+
+    &__field {
+        @apply h-7 min-w-[10rem] flex-1 border-0 bg-transparent px-1 text-sm text-content-primary outline-none;
+
+        &::placeholder {
+            @apply text-content-muted;
+        }
+    }
+}

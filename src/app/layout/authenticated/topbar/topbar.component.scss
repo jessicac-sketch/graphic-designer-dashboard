@@ -1,0 +1,33 @@
+.topbar {
+    @apply flex h-16 items-center justify-between gap-4 border-b border-surface-border bg-surface-base px-4 lg:px-6;
+
+    &__start,
+    &__end {
+        @apply flex shrink-0 items-center gap-3;
+    }
+
+    /* The room between the two ends, for the totals */
+    &__center {
+        @apply flex-1;
+    }
+
+    /* Square 40px icon button, the same height as inputs and buttons */
+    &__toggle {
+        @apply flex h-10 w-10 items-center justify-center text-content-muted transition-colors;
+
+        &:hover,
+        &:focus-visible {
+            @apply bg-surface-hover text-content-primary outline-none;
+        }
+    }
+
+    &__icon {
+        @apply h-5 w-5;
+    }
+
+    /* The sidebar section, shown while the menu is open: the brand accent */
+    &__panel {
+        fill: var(--app-brand);
+        opacity: 0.85;
+    }
+}

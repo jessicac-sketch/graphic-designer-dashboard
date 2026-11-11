@@ -1,0 +1,730 @@
+/**
+ * Dark-mode fixes for @ntv360/component-pantry (0.7.12).
+ *
+ * The pantry's dark styles leave some text unreadable on dark backgrounds.
+ * These overrides patch those gaps until the pantry fixes them upstream;
+ * remove each rule once the library handles it.
+ *
+ * `!important` is required: the pantry's rules are component-scoped with higher
+ * specificity than a global selector can reach.
+ */
+.dark {
+    /*
+     * Theme: the pantry's dark palette is gray (cards #1f2937, borders #374151, fields
+     * #1f2937); re-theme it to the app's navy tokens (_theme.scss).
+     */
+    ntv-card .card {
+        background-color: var(--app-surface-raised) !important;
+        border-color: var(--app-surface-border) !important;
+    }
+
+    /* ntv-offcanvas (the mobile nav drawer): its panel is hard-coded white with a light
+       header border and gray close button - re-theme to the sidebar's navy surface, and
+       let the sidebar fill the drawer (it brings its own padding) */
+    .offcanvas__panel {
+        background-color: var(--app-surface-raised) !important;
+        border-right: 1px solid var(--app-surface-border);
+    }
+
+    .offcanvas__header {
+        border-color: var(--app-surface-border) !important;
+    }
+
+    .offcanvas__title,
+    .offcanvas__close {
+        color: var(--app-content-secondary) !important;
+    }
+
+    .offcanvas__close:hover {
+        color: var(--app-content-primary) !important;
+    }
+
+    .offcanvas__content {
+        padding: 0 !important;
+    }
+
+    .offcanvas__content .sidebar {
+        @apply w-full border-r-0;
+    }
+
+    /* ntv-popover (e.g. the account menu): gray panel and border → the raised navy surface */
+    .ntv-popover {
+        background-color: var(--app-surface-raised) !important;
+        border-color: var(--app-surface-border) !important;
+    }
+
+    .ntv-popover__content::-webkit-scrollbar-track {
+        background-color: var(--app-surface-base) !important;
+    }
+
+    ntv-input {
+        --input-background-color: var(--app-field-bg) !important;
+        --input-variant-color: var(--app-field-border) !important;
+        --input-placeholder-color: var(--app-content-muted) !important;
+    }
+
+    ntv-input .input__wrapper {
+        border-color: var(--app-field-border) !important;
+    }
+
+    /*
+     * ntv-button sizes are 34px (md) or 38px (lg); `match-input` makes a button 40px tall,
+     * the same as ntv-input, so it lines up with inputs in the same header or toolbar.
+     */
+    ntv-button.match-input .btn {
+        height: 40px !important;
+    }
+
+    /* Primary buttons: the website's magenta-to-red gradient; disabled stays dark */
+    ntv-button .btn--primary:not(:disabled) {
+        background-image: var(--app-brand-gradient) !important;
+    }
+
+    ntv-button .btn--primary:not(:disabled):hover {
+        background-image: linear-gradient(90deg, #e90912 0%, #c60539 55%, #a40556 100%) !important;
+    }
+
+    ntv-button .btn--primary:disabled {
+        background-color: var(--app-field-bg) !important;
+        background-image: none !important;
+        border: 1px solid var(--app-surface-border) !important;
+        color: var(--app-content-muted) !important;
+    }
+
+    /*
+     * ntv-input: typed text inherits the border color (#586176 at rest, navy #091635
+     * on focus) and is hard-coded to black in the error state — all near-invisible
+     * on the dark field.
+     */
+    ntv-input .input__wrapper input,
+    ntv-input .input__wrapper textarea {
+        color: var(--app-content-primary) !important;
+    }
+
+    ntv-input .input__wrapper input::placeholder,
+    ntv-input .input__wrapper textarea::placeholder {
+        color: var(--app-content-muted) !important;
+    }
+
+    /* ntv-input: the validation message is dark red (#cf040b), too dim on dark grounds. */
+    ntv-input .input-message .text-red-600 {
+        color: #f87171 !important; /* red-400 */
+    }
+
+    /*
+     * ntv-textarea: its dark rules need a `variant-*` class the wrapper never gets, so the
+     * field stays white with dim (#586176) text. Match ntv-input's dark field.
+     */
+    ntv-textarea .textarea__wrapper {
+        background-color: var(--app-field-bg) !important; /* same as the ntv-input field */
+    }
+
+    ntv-textarea .textarea__wrapper textarea {
+        color: var(--app-content-primary) !important;
+    }
+
+    ntv-textarea .textarea__wrapper textarea::placeholder {
+        color: var(--app-content-muted) !important;
+    }
+
+    ntv-textarea .input-message .text-red-600 {
+        color: #f87171 !important; /* red-400 */
+    }
+
+    /*
+     * ntv-checkbox: an unchecked box is white on the dark surface. Use the dark field
+     * color (like ntv-input) with its gray border; checked boxes keep their fill.
+     */
+    ntv-checkbox .ntv-checkbox-input:not(:checked):not(:indeterminate) + .ntv-checkbox-custom {
+        background-color: var(--app-field-bg) !important; /* same as the ntv-input field */
+        border-color: var(--app-field-border) !important;
+    }
+
+    /*
+     * ntv-checkbox: the host is a block holding an inline-flex box, so it sits on a text
+     * line whose baseline comes from the box's content. Checked boxes hold a checkmark
+     * (svg), unchecked ones don't, so ticking and unticking moved the baseline and changed
+     * the height by 2px. A flex host has no text line: the height stays the same.
+     */
+    ntv-checkbox {
+        display: flex;
+    }
+
+    /*
+     * ntv-tabs: the active tab is navy (#091635) and the others red (#D10334), both
+     * near-invisible on dark grounds, over a light-gray (#e5e7eb) baseline. Use readable
+     * text, a brand underline for the active tab and the theme border.
+     */
+    ntv-tabs .ntv-tabs {
+        border-bottom-color: var(--app-surface-border) !important;
+    }
+
+    ntv-tabs .ntv-tabs__tab {
+        color: var(--app-content-secondary) !important;
+    }
+
+    ntv-tabs .ntv-tabs__tab--active,
+    ntv-tabs .ntv-tabs__tab--active:focus,
+    ntv-tabs .ntv-tabs__tab--active:focus-visible,
+    ntv-tabs .ntv-tabs__tab--active:active {
+        color: var(--app-content-primary) !important;
+        border-bottom-color: var(--app-brand) !important;
+    }
+
+    /*
+     * ntv-table: the whole table container has `cursor: pointer`, so every row looks
+     * clickable. Rows aren't; only links, buttons and checkboxes in them are.
+     */
+    ntv-table .table-container {
+        cursor: auto !important;
+    }
+
+    ntv-table a,
+    ntv-table button,
+    ntv-table input[type='checkbox'],
+    ntv-table label {
+        cursor: pointer;
+    }
+
+    /*
+     * ntv-table: the container and <table> stay white and cells use light-gray (#e5e7eb)
+     * borders; `tableBGColor` / `tableHeaderBGColor` only reach the rows and header.
+     * Use the raised dark surface and theme borders, with readable header text.
+     */
+    ntv-table .table-container,
+    ntv-table table {
+        background-color: var(--app-surface-raised) !important;
+        border-color: var(--app-surface-border) !important;
+    }
+
+    ntv-table th,
+    ntv-table td {
+        border-color: var(--app-surface-border) !important;
+    }
+
+    ntv-table th {
+        color: var(--app-content-muted) !important;
+    }
+
+    ntv-table .pagination {
+        border-top: 1px solid var(--app-surface-border) !important;
+    }
+
+    /*
+     * ntv-toast: light pastel backgrounds with a drop shadow. Re-tint each variant for
+     * dark grounds and draw its (otherwise unused) border color as a 1px outline.
+     */
+    ntv-toast .toast {
+        --toast-bg-color: var(--app-surface-raised) !important;
+        border: 1px solid var(--toast-border-color) !important;
+        box-shadow: none !important;
+    }
+
+    ntv-toast .toast--error {
+        --toast-text-color: #fecaca !important;
+        --toast-icon-color: #f87171 !important;
+        --toast-progress-color: #ef4444 !important;
+        --toast-border-color: #f87171 !important;
+    }
+
+    ntv-toast .toast--success {
+        --toast-text-color: #bbf7d0 !important;
+        --toast-icon-color: #4ade80 !important;
+        --toast-progress-color: #22c55e !important;
+        --toast-border-color: #4ade80 !important;
+    }
+
+    ntv-toast .toast--warning {
+        --toast-text-color: #fde68a !important;
+        --toast-icon-color: #fbbf24 !important;
+        --toast-progress-color: #f59e0b !important;
+        --toast-border-color: #fbbf24 !important;
+    }
+
+    ntv-toast .toast--info {
+        --toast-text-color: #bfdbfe !important;
+        --toast-icon-color: #60a5fa !important;
+        --toast-progress-color: #3b82f6 !important;
+        --toast-border-color: #60a5fa !important;
+    }
+
+    ntv-toast .toast__progress-container {
+        background-color: var(--app-surface-border) !important;
+    }
+
+    ntv-toast .toast__close {
+        color: var(--app-content-muted) !important;
+    }
+
+    /*
+     * ntv-modal: white panel with light-theme text and no dark styles. Use the raised
+     * dark surface with a 1px outline, and readable text for every variant.
+     */
+    ntv-modal .modal__content,
+    ntv-modal .modal__content--error,
+    ntv-modal .modal__body {
+        background-color: var(--app-surface-raised) !important;
+    }
+
+    ntv-modal .modal__content {
+        border: 1px solid var(--app-surface-border) !important;
+        box-shadow: none !important;
+    }
+
+    ntv-modal .modal__header,
+    ntv-modal .modal__footer {
+        background-color: var(--app-surface-raised) !important;
+        border-color: var(--app-surface-border) !important;
+    }
+
+    ntv-modal .modal__title,
+    ntv-modal .modal__confirmation-title,
+    ntv-modal .modal__alert-title--error,
+    ntv-modal .modal__loading-title {
+        color: var(--app-content-primary) !important;
+    }
+
+    ntv-modal .modal__subtitle,
+    ntv-modal .modal__confirmation-message,
+    ntv-modal .modal__alert-description,
+    ntv-modal .modal__loading-description {
+        color: var(--app-content-muted) !important;
+    }
+
+    ntv-modal .modal__close {
+        color: var(--app-content-muted) !important;
+
+        &:hover {
+            background-color: var(--app-surface-hover) !important;
+            color: var(--app-content-primary) !important;
+        }
+    }
+}
+
+/*
+ * Components gbp-management-tool-ui doesn't use, so these fixes are specific to this app.
+ */
+.dark {
+    /*
+     * ntv-skeleton: light slate placeholders (#e2e8f0 shimmering to #f8fafc), glaring on
+     * dark grounds. Its colors are CSS variables on the host: point them at the theme.
+     */
+    ntv-skeleton {
+        --skeleton-base-color: var(--app-surface-raised) !important;
+        --skeleton-highlight-color: var(--app-surface-border) !important;
+    }
+
+    ntv-skeleton .skeleton--card {
+        border: 1px solid var(--app-surface-border) !important;
+    }
+
+    /*
+     * ntv-table (beyond the shared container fixes above): the body and header paint
+     * from the pantry's own variables (--body-bg-color #ffffff, --header-bg-color
+     * #fafafa, set from tableBGColor / tableHeaderBGColor), so rows stayed white. Cell
+     * text is hard-coded navy (#091635), and the column filters, sort buttons, empty
+     * state, settings panel and loading overlay are all light. Re-theme them all.
+     */
+    ntv-table {
+        --body-bg-color: var(--app-surface-raised) !important;
+        --header-bg-color: var(--app-surface-raised) !important;
+        --table-loading-accent: var(--app-brand) !important;
+        --primary-color: var(--app-brand) !important;
+    }
+
+    ntv-table .table,
+    ntv-table tbody,
+    ntv-table thead,
+    ntv-table .table-wrapper thead,
+    ntv-table .no-data-content {
+        background-color: var(--app-surface-raised) !important;
+    }
+
+    ntv-table .table-wrapper {
+        scrollbar-color: var(--app-surface-border) transparent !important;
+    }
+
+    ntv-table tbody td,
+    ntv-table .table-title,
+    ntv-table .table-tag,
+    ntv-table .column-option span,
+    ntv-table .column-settings-title h3 {
+        color: var(--app-content-primary) !important;
+    }
+
+    ntv-table thead th,
+    ntv-table thead th.index-column,
+    ntv-table tbody td.index-column,
+    ntv-table .sort-btn,
+    ntv-table .pagination-text,
+    ntv-table .no-data-description,
+    ntv-table .table__append-label {
+        color: var(--app-content-muted) !important;
+    }
+
+    ntv-table .sort-btn:hover {
+        color: var(--app-content-primary) !important;
+    }
+
+    ntv-table tbody tr,
+    ntv-table thead th.table-group-header,
+    ntv-table thead th.group-edge,
+    ntv-table thead tr.table-group-children-row th,
+    ntv-table .dropdown-header,
+    ntv-table .column-settings-showing {
+        border-color: var(--app-surface-border) !important;
+    }
+
+    ntv-table tbody tr:not(.table__empty-row):hover,
+    ntv-table .settings-btn:hover,
+    ntv-table .action-buttons button:hover,
+    ntv-table .lock-btn:hover,
+    ntv-table .expand-btn:hover,
+    ntv-table .draggable-column:hover,
+    ntv-table .draggable-table .draggable-header:hover {
+        background-color: var(--app-surface-hover) !important;
+    }
+
+    ntv-table .locked-row,
+    ntv-table .expanded-content-row,
+    ntv-table .expandable-column.expanded {
+        background-color: var(--app-surface-base) !important;
+    }
+
+    ntv-table .expanded-content-wrapper {
+        background-color: var(--app-surface-raised) !important;
+        border-left-color: var(--app-brand) !important;
+        box-shadow: none !important;
+    }
+
+    /* Column filter search inputs, the column settings panel and its dropdowns */
+    ntv-table .column-search-input {
+        background-color: var(--app-field-bg) !important;
+        border-color: var(--app-field-border) !important;
+        color: var(--app-content-primary) !important;
+
+        &::placeholder {
+            color: var(--app-content-muted) !important;
+        }
+
+        &:focus {
+            border-color: var(--app-brand) !important;
+            box-shadow: none !important;
+        }
+    }
+
+    ntv-table .column-settings-panel,
+    ntv-table .column-selector-dropdown,
+    ntv-table .dropdown-header,
+    ntv-table .column-settings-showing {
+        background-color: var(--app-surface-raised) !important;
+        color: var(--app-content-secondary) !important;
+        box-shadow: none !important;
+    }
+
+    ntv-table .column-settings-close {
+        color: var(--app-content-muted) !important;
+    }
+
+    ntv-table .checkbox-input:not(:checked):not(:indeterminate) {
+        background-color: var(--app-field-bg) !important;
+        border-color: var(--app-field-border) !important;
+    }
+
+    /*
+     * Column filter icon in the header: an inline SVG with a hard-coded navy stroke
+     * (#091635), invisible on the dark header. Follow the text color instead (muted,
+     * white on an active filter column's gradient header).
+     */
+    ntv-table .column-filter button {
+        color: var(--app-content-muted);
+
+        &:hover {
+            color: var(--app-content-primary);
+        }
+    }
+
+    ntv-table .column-filter svg path {
+        stroke: currentColor !important;
+    }
+
+    ntv-table thead th.filtered-column .column-filter button {
+        color: inherit;
+    }
+
+    /*
+     * ntv-column-filter: the filter / sort popup opened from a header's filter icon.
+     * Its panel sits in an ntv-popover (re-themed above), but the title is dim gray
+     * (#495057), the inputs focus to a white fill, the select is white, and Clear is a
+     * solid red button. Not scoped under ntv-table: the popover can render outside it.
+     */
+    ntv-column-filter .filter-popup-header {
+        border-bottom-color: var(--app-surface-border) !important;
+    }
+
+    ntv-column-filter .filter-popup-header span {
+        color: var(--app-content-primary) !important;
+        font-weight: 600;
+    }
+
+    ntv-column-filter .filter-info {
+        color: var(--app-content-muted) !important;
+    }
+
+    ntv-column-filter .filter-popup-input,
+    ntv-column-filter .filter-popup-select {
+        background-color: var(--app-field-bg) !important;
+        background-image: none !important;
+        border-color: var(--app-field-border) !important;
+        color: var(--app-content-primary) !important;
+
+        &::placeholder {
+            color: var(--app-content-muted) !important;
+        }
+
+        &:focus {
+            border-color: var(--app-brand) !important;
+            box-shadow: none !important;
+        }
+    }
+
+    ntv-column-filter .filter-popup-select option {
+        background-color: var(--app-surface-raised);
+        color: var(--app-content-primary);
+    }
+
+    ntv-column-filter .sort-btn-popup {
+        background-image: var(--app-brand-gradient) !important;
+    }
+
+    ntv-column-filter .clear-filter-btn {
+        background-color: transparent !important;
+        border: 1px solid var(--app-status-crit) !important;
+        color: var(--app-status-crit) !important;
+
+        &:hover {
+            background-color: var(--app-surface-hover) !important;
+        }
+    }
+
+    ntv-column-filter .close-popup-btn,
+    ntv-column-filter .filter-icon-btn {
+        color: var(--app-content-muted) !important;
+
+        &:hover {
+            background-color: var(--app-surface-hover) !important;
+            color: var(--app-content-primary) !important;
+        }
+    }
+
+    /* Loading overlay shown while a table's data (re)loads */
+    ntv-table .table__append-backdrop {
+        background: color-mix(in srgb, var(--app-surface-raised) 60%, transparent) !important;
+    }
+
+    ntv-table .table__append-spinner {
+        border-color: var(--app-surface-border) !important;
+        border-top-color: var(--app-brand) !important;
+    }
+
+    /*
+     * ntv-date-range-picker / ntv-date-picker: no dark styles. The trigger is a white
+     * field with gray (#586176) text that turns red (#D10334) on hover and navy (#091635)
+     * when open; the calendar uses red for today/selection and peach (#fff3ea) for the
+     * range. Use the dark field, readable text, and the brand orange for emphasis.
+     */
+    .date__picker--trigger,
+    .date__picker--trigger-legend,
+    .date__picker--drs {
+        background-color: var(--app-field-bg) !important;
+        border-color: var(--app-field-border) !important;
+        color: var(--app-content-secondary) !important;
+    }
+
+    .date__picker--trigger-legend .legend--label {
+        background-color: var(--app-field-bg) !important;
+    }
+
+    .date__picker--trigger:hover,
+    .date__picker--trigger.date__picker--is-open {
+        border-color: var(--app-brand) !important;
+        color: var(--app-content-primary) !important;
+    }
+
+    .date__picker--drs .drs-field--active,
+    .drs--has-start .date-range--start-date:hover,
+    .drs--has-start .date-range--end-date:hover {
+        color: var(--app-brand) !important;
+    }
+
+    .date-range-picker--separator {
+        color: var(--app-content-muted) !important;
+    }
+
+    .date-range-picker--clear-btn,
+    .date-range--clear-btn {
+        color: var(--app-content-muted) !important;
+
+        &:hover {
+            background-color: var(--app-surface-hover) !important;
+            color: var(--app-content-primary) !important;
+        }
+    }
+
+    /* Calendar panel (inside the ntv-popover, re-themed above) */
+    .date__picker--month-view,
+    .year-picker-list,
+    .month-item {
+        color: var(--app-content-primary) !important;
+    }
+
+    .date__picker--header-nav-btn {
+        color: var(--app-content-secondary) !important;
+
+        &:hover {
+            background-color: var(--app-surface-hover) !important;
+            color: var(--app-content-primary) !important;
+        }
+    }
+
+    .month-item:hover,
+    .year-picker-list .year-item:hover {
+        background-color: var(--app-surface-hover) !important;
+    }
+
+    .month-item--current,
+    .year-picker-list .currentYear {
+        background-color: var(--app-brand) !important;
+        color: var(--app-surface-base) !important;
+    }
+
+    .month-item--current .month-item__dot,
+    .year-picker-list .year-item.currentYear .year-item__dot {
+        background-color: var(--app-brand) !important;
+    }
+
+    .date__picker--month-view .day:hover {
+        border-color: var(--app-brand) !important;
+    }
+
+    .date__picker--month-view .day--other-month,
+    .date__picker--month-view .day--isPast,
+    .date__picker--month-view .day--selectable-as-start-date,
+    .day--invalid-selectable-start-date {
+        color: var(--app-content-muted) !important;
+    }
+
+    .date__picker--month-view .day--selectable-as-end-date {
+        color: var(--app-surface-border) !important;
+    }
+
+    .date__picker--month-view .day--today {
+        border-color: var(--app-brand) !important;
+        color: var(--app-brand) !important;
+    }
+
+    .date__picker--month-view .day.day--in-range,
+    .date__picker--month-view .day--isSelected[data-is-single-date-range='true'],
+    .date__picker--month-view .day--isSelected-end-date[data-is-single-date-range='true'],
+    .day--start-range-day[data-is-single-date-range='true'] {
+        background-color: var(--app-brand-soft) !important;
+        color: var(--app-content-primary) !important;
+    }
+
+    .date__picker--month-view .day--isSelected[data-is-single-date-range='false'],
+    .day--start-range-day[data-is-single-date-range='false'],
+    .date__picker--month-view .day:is(.day--isSelected)[data-is-single-date-range='true'] p {
+        background-color: var(--app-brand) !important;
+        color: var(--app-surface-base) !important;
+    }
+
+    .range-nav--btn {
+        border-color: var(--app-brand) !important;
+        color: var(--app-brand) !important;
+
+        &:hover {
+            background-color: var(--app-brand) !important;
+            color: var(--app-surface-base) !important;
+        }
+
+        &:disabled {
+            border-color: var(--app-surface-border) !important;
+            color: var(--app-surface-border) !important;
+        }
+    }
+}
+
+/*
+ * Not dark-specific: ntv-date-range-picker's single-field trigger pads its dates twice on
+ * the left - 12px on the button plus another 8px on the inner wrapper - so "Start Date"
+ * sat ~20px in while the calendar icon on the right only had 12px. Drop the wrapper's
+ * left padding only: its right padding is what spaces "End Date" from the calendar icon
+ * (and the clear button).
+ */
+.date__picker--drs .date-range--wrapper {
+    padding-left: 0 !important;
+}
+
+/*
+ * Not dark-specific: ntv-error-states ships an unscoped `footer { position: absolute;
+ * bottom: 0; z-index: -1; pointer-events: none; }` rule in the pantry's global styles,
+ * which pulls every <footer> in the app out of the layout and behind its container
+ * (unclickable). Restore normal flow everywhere except inside ntv-error-states. Low
+ * specificity on purpose, so a component's own footer class still wins.
+ */
+footer:not(ntv-error-states footer) {
+    position: static;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    z-index: auto;
+    pointer-events: auto;
+}
+
+/*
+ * Not dark-specific: ntv-table forces `min-width: 100px` on every header and body cell
+ * (its `defaultMinWidth` input never reaches them), which pushes small columns such as
+ * counts wider than their content and makes tables scroll sideways. Let cells size to
+ * their content; the `#` column keeps the pantry's own 60px `.index-column` width.
+ */
+ntv-table th:not(.index-column),
+ntv-table td:not(.index-column) {
+    min-width: 0 !important;
+}
+
+/*
+ * Not dark-specific: ntv-table's bottom edge. The last row, the <table> and the
+ * pagination footer each drew a rule, with a 12px gap (wrapper margin) before the
+ * footer, and the footer had no vertical padding (21px tall). Keep one rule — the
+ * footer's top border — and give the footer the same 12px padding as table cells.
+ */
+ntv-table .table-wrapper {
+    margin-bottom: 0 !important;
+}
+
+/*
+ * Not a pantry bug, an app rule: tables show about 15 rows (the first page), then
+ * scroll inside, so "Show More" grows the table's scroll area instead of the page.
+ * The header stays put (the pantry makes it sticky). Rows here are ~61px (two lines);
+ * the header ~45px.
+ */
+ntv-table .table-wrapper {
+    max-height: calc(48px + 15 * 61px);
+    overflow-y: auto !important;
+}
+
+ntv-table table {
+    border-bottom-width: 0 !important;
+}
+
+ntv-table tbody tr:last-child,
+ntv-table tbody tr:last-child td {
+    border-bottom-width: 0 !important;
+}
+
+ntv-table .pagination {
+    align-items: center !important;
+    min-height: 44px;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}

@@ -1,0 +1,11 @@
+:host {
+    @apply block w-64 max-w-full;
+}
+
+.search-field {
+    @apply block w-full;
+
+    &__icon {
+        @apply text-xs text-content-muted;
+    }
+}

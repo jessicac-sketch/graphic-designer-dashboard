@@ -1,0 +1,93 @@
+:host {
+    @apply block shrink-0;
+}
+
+/* Button: 40px like the inputs and the sort control beside it - the filter's name, then
+   the selected choice */
+.filter-menu {
+    @apply flex h-10 items-center gap-2 whitespace-nowrap border border-field-border bg-field-bg px-3.5 text-sm transition-colors;
+
+    &:hover:not(:disabled) {
+        @apply border-content-muted;
+    }
+
+    &:focus-visible {
+        @apply border-brand outline-none;
+    }
+
+    &:disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+
+    /* A real filter is applied: brand edge, so it stays visible */
+    &--filtering {
+        @apply border-brand;
+    }
+
+    &__label {
+        @apply text-content-muted;
+    }
+
+    &__value {
+        @apply font-semibold text-content-primary;
+    }
+
+    &__chevron {
+        @apply ml-1 text-micro text-content-muted transition-transform;
+
+        &--open {
+            @apply rotate-180;
+        }
+    }
+
+    /* The menu (rendered by ntv-popover in document.body; these nodes keep this
+       component's scoped attribute, so the styles still apply) */
+    &__panel {
+        @apply flex max-h-80 flex-col overflow-y-auto border border-surface-border bg-surface-raised p-1.5 shadow-xl;
+    }
+
+    /* Like <app-filter-list>'s rows: the active one tinted with a brand edge */
+    &__item {
+        @apply relative flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-content-secondary transition-colors;
+
+        &:hover {
+            @apply bg-surface-hover text-content-primary;
+        }
+
+        &--active {
+            @apply bg-brand-soft text-content-primary;
+
+            &::before {
+                @apply absolute inset-y-1.5 left-0 w-0.5 bg-brand content-[''];
+            }
+        }
+    }
+
+    &__icon {
+        @apply w-4 text-center text-content-muted;
+    }
+
+    &__item--active &__icon {
+        @apply text-brand;
+    }
+
+    &__name {
+        @apply flex-1 truncate;
+    }
+
+    &__count {
+        @apply border border-surface-border px-1.5 text-label font-semibold tabular-nums text-content-secondary;
+    }
+}
+
+/* The popover shell around the menu: no frame of its own (the panel has the border,
+   background and shadow) - same as <app-range-menu>'s */
+::ng-deep .ntv-popover:has(.filter-menu__panel) {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    .ntv-popover__content {
+        padding: 0 !important;
+    }
+}

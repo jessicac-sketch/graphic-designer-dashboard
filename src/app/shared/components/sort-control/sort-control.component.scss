@@ -1,0 +1,30 @@
+:host {
+    @apply block;
+}
+
+/* Same 40px height as the search input */
+.sort-control {
+    @apply flex h-10 w-full items-stretch border border-surface-border;
+
+    &__label {
+        @apply flex items-center border-r border-surface-border px-3 text-xs text-content-muted;
+    }
+
+    &__option {
+        @apply flex flex-1 items-center justify-center px-2 text-xs font-semibold text-content-secondary transition-colors;
+
+        &:hover {
+            @apply bg-surface-hover text-content-primary;
+        }
+
+        &--active,
+        &--active:hover {
+            @apply bg-brand-soft text-brand;
+        }
+    }
+
+    /* Arrow on the active option when the control has a direction */
+    &__direction {
+        @apply ml-1.5 text-micro;
+    }
+}

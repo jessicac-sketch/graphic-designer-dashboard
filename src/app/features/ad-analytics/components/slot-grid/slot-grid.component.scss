@@ -1,0 +1,66 @@
+:host {
+    @apply block;
+}
+
+/* Cards in a responsive grid; the card grows with its slots (no scroll area of its own) */
+.slot-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+
+    /* One slot: no padding on the card itself, so the screenshot can run edge to edge; the
+       padding is on the text side */
+    &__tile {
+        @apply flex min-w-0 overflow-hidden border border-surface-border bg-surface-base;
+    }
+
+    /* The full height of the card (it stretches to the text side), flush with the card's
+       left, top and bottom edges; the screenshot is letterboxed on black inside it */
+    &__shot {
+        @apply relative block w-24 shrink-0 bg-black;
+    }
+
+    /* Absolute, so the text side (not the image's own size) decides the card's height */
+    &__shot-media {
+        @apply absolute inset-0 block h-full w-full max-w-none object-contain;
+    }
+
+    &__no-shot {
+        @apply absolute inset-0 flex items-center justify-center text-sm text-content-muted;
+    }
+
+    &__body {
+        @apply flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5;
+    }
+
+    &__head {
+        @apply flex items-baseline justify-between gap-2;
+    }
+
+    &__position {
+        @apply flex items-baseline gap-1.5 text-lg font-bold tabular-nums text-content-primary;
+    }
+
+    &__label {
+        @apply text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    &__plays {
+        @apply shrink-0 text-sm font-bold tabular-nums text-content-primary;
+    }
+
+    &__unit {
+        @apply text-xs font-normal text-content-muted;
+    }
+
+    &__id {
+        @apply truncate text-xs text-content-secondary;
+    }
+
+    &__meta {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__empty {
+        @apply text-xs text-content-muted;
+    }
+}

@@ -1,0 +1,38 @@
+:host {
+    @apply block;
+}
+
+.page-header {
+    @apply flex flex-wrap items-end justify-between gap-4;
+
+    /* Takes the room left by the actions; long subtitles wrap instead of pushing them down */
+    &__heading {
+        @apply flex min-w-0 flex-1 flex-col gap-1;
+    }
+
+    &__eyebrow {
+        @apply flex items-center gap-2 text-label font-semibold uppercase tracking-[0.14em] text-brand !font-mono;
+
+        &::before {
+            @apply h-2 w-2 bg-brand content-[''];
+        }
+    }
+
+    &__title {
+        @apply flex items-center gap-3 text-2xl font-bold text-content-primary;
+    }
+
+    &__preview {
+        @apply border border-surface-border px-1.5 py-px text-micro font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    }
+
+    /* A comfortable line length (~70 characters), at most two lines: longer text ends in
+       "…" and shows in full on hover */
+    &__subtitle {
+        @apply line-clamp-2 max-w-[70ch] text-sm leading-relaxed text-content-muted;
+    }
+
+    &__actions {
+        @apply flex shrink-0 items-center gap-3;
+    }
+}

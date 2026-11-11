@@ -1,0 +1,78 @@
+<aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
+    <!-- Folded: the square NTV360 mark in place of the wordmark and caption -->
+    <div class="sidebar__brand" [class.sidebar__brand--compact]="collapsed()">
+        @if (collapsed()) {
+            <img
+                class="sidebar__mark"
+                src="assets/ntv360-square.webp"
+                alt="NTV360"
+                width="32"
+                height="27" />
+        } @else {
+            <app-brand [caption]="caption" />
+        }
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Main">
+        @if (!collapsed()) {
+            <span class="sidebar__label">Menu</span>
+        }
+
+        @for (item of navItems; track item.route) {
+            <a
+                class="sidebar__link"
+                [routerLink]="item.route"
+                routerLinkActive="sidebar__link--active"
+                [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                [attr.title]="collapsed() ? item.label : null"
+                [attr.aria-label]="collapsed() ? item.label : null"
+                (click)="navigate.emit()">
+                <i
+                    class="sidebar__link-icon fa-sharp fa-regular fa-{{ item.icon }}"
+                    aria-hidden="true"></i>
+                @if (!collapsed()) {
+                    <span class="sidebar__link-label">{{ item.label }}</span>
+                    @if (item.badge) {
+                        <span class="sidebar__badge">{{ item.badge }}</span>
+                    }
+                }
+            </a>
+        }
+    </nav>
+
+    @if (!collapsed()) {
+        <div class="sidebar__time-toggle" role="group" aria-label="Time display">
+            <button
+                type="button"
+                class="sidebar__time-toggle-option"
+                [class.sidebar__time-toggle-option--active]="
+                    timeDisplayService.mode() === 'eastern'
+                "
+                [attr.aria-pressed]="timeDisplayService.mode() === 'eastern'"
+                title="Show dates and times in Eastern Time"
+                (click)="timeDisplayService.setMode('eastern')">
+                Eastern Time
+            </button>
+            <button
+                type="button"
+                class="sidebar__time-toggle-option"
+                [class.sidebar__time-toggle-option--active]="
+                    timeDisplayService.mode() === 'utc'
+                "
+                [attr.aria-pressed]="timeDisplayService.mode() === 'utc'"
+                title="Show dates and times in UTC"
+                (click)="timeDisplayService.setMode('utc')">
+                UTC
+            </button>
+        </div>
+    }
+
+    <div class="sidebar__footer">
+        <p class="sidebar__version">
+            @if (!collapsed()) {
+                <span>{{ caption }}</span>
+            }
+            <span class="sidebar__version-number">v{{ version }}</span>
+        </p>
+    </div>
+</aside>

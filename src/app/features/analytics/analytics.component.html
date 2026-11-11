@@ -1,0 +1,167 @@
+<div class="page">
+    <app-page-header
+        eyebrow="Analytics"
+        title="Analytics"
+        subtitle="Advanced analytics and insights for programmatic ads" />
+
+    @if (dashboardAnalytics()) {
+        <div class="analytics-grid">
+            <!-- Growth Chart -->
+            <ntv-card [config]="cardConfig" class="analytics-card">
+                <div class="analytics-chart-wrapper">
+                    <apx-chart
+                        [series]="growthChartOptions.series!"
+                        [chart]="growthChartOptions.chart!"
+                        [title]="growthChartOptions.title!"
+                        [dataLabels]="growthChartOptions.dataLabels!"
+                        [stroke]="growthChartOptions.stroke!"
+                        [markers]="growthChartOptions.markers!"
+                        [xaxis]="growthChartOptions.xaxis!"
+                        [yaxis]="growthChartOptions.yaxis!"
+                        [grid]="growthChartOptions.grid!"
+                        [tooltip]="growthChartOptions.tooltip!"
+                        [legend]="growthChartOptions.legend!"></apx-chart>
+                </div>
+            </ntv-card>
+
+            <!-- Content Weekly Chart -->
+            <ntv-card [config]="cardConfig" class="analytics-card">
+                <div class="analytics-chart-wrapper">
+                    <apx-chart
+                        [series]="weeklyContentChartOptions.series!"
+                        [chart]="weeklyContentChartOptions.chart!"
+                        [title]="weeklyContentChartOptions.title!"
+                        [plotOptions]="weeklyContentChartOptions.plotOptions!"
+                        [dataLabels]="weeklyContentChartOptions.dataLabels!"
+                        [xaxis]="weeklyContentChartOptions.xaxis!"
+                        [yaxis]="weeklyContentChartOptions.yaxis!"
+                        [grid]="weeklyContentChartOptions.grid!"
+                        [tooltip]="weeklyContentChartOptions.tooltip!"
+                        [legend]="weeklyContentChartOptions.legend!"
+                        [colors]="weeklyContentChartOptions.colors!"></apx-chart>
+                </div>
+            </ntv-card>
+
+            <!-- Total Plays Aggregation -->
+            <ntv-card [config]="cardConfig" class="analytics-card">
+                <div class="analytics-chart-wrapper">
+                    <apx-chart
+                        [series]="totalPlaysChartOptions.series!"
+                        [chart]="totalPlaysChartOptions.chart!"
+                        [title]="totalPlaysChartOptions.title!"
+                        [stroke]="totalPlaysChartOptions.stroke!"
+                        [plotOptions]="totalPlaysChartOptions.plotOptions!"
+                        [dataLabels]="totalPlaysChartOptions.dataLabels!"
+                        [labels]="totalPlaysChartOptions.labels!"
+                        [xaxis]="totalPlaysChartOptions.xaxis!"
+                        [yaxis]="totalPlaysChartOptions.yaxis!"
+                        [grid]="totalPlaysChartOptions.grid!"
+                        [tooltip]="totalPlaysChartOptions.tooltip!"
+                        [legend]="totalPlaysChartOptions.legend!"
+                        [colors]="totalPlaysChartOptions.colors!"></apx-chart>
+                </div>
+            </ntv-card>
+
+            <!-- Weekly Total Plays Trend -->
+            <ntv-card [config]="cardConfig" class="analytics-card">
+                <div class="analytics-chart-wrapper">
+                    <apx-chart
+                        [series]="weeklyPlaysChartOptions.series!"
+                        [chart]="weeklyPlaysChartOptions.chart!"
+                        [title]="weeklyPlaysChartOptions.title!"
+                        [dataLabels]="weeklyPlaysChartOptions.dataLabels!"
+                        [stroke]="weeklyPlaysChartOptions.stroke!"
+                        [markers]="weeklyPlaysChartOptions.markers!"
+                        [xaxis]="weeklyPlaysChartOptions.xaxis!"
+                        [yaxis]="weeklyPlaysChartOptions.yaxis!"
+                        [fill]="weeklyPlaysChartOptions.fill!"
+                        [grid]="weeklyPlaysChartOptions.grid!"
+                        [tooltip]="weeklyPlaysChartOptions.tooltip!"
+                        [legend]="weeklyPlaysChartOptions.legend!"
+                        [colors]="weeklyPlaysChartOptions.colors!"></apx-chart>
+                </div>
+            </ntv-card>
+        </div>
+    }
+
+    <!-- Top 5 Ads Section -->
+    @if (dashboardAnalytics()) {
+        <div class="top-ads-section">
+            <h2 class="top-ads-section__title">Top 5 Performing Ads</h2>
+            @for (ad of topAds; track ad.contentId; let i = $index) {
+                <ntv-card [config]="cardConfig" class="top-ad-card">
+                    <div class="top-ad-card__rank-badge">{{ i + 1 }}</div>
+                    <div class="top-ad-card__content">
+                        <div class="top-ad-card__thumbnail">
+                            @if (ad.creativeType === 'video') {
+                                <video
+                                    [src]="ad.creativeUrl"
+                                    muted
+                                    playsinline
+                                    preload="metadata"></video>
+                            } @else {
+                                <img [src]="ad.thumbnail" [alt]="ad.title" />
+                            }
+                        </div>
+                        <div class="top-ad-card__info">
+                            <h3 class="top-ad-card__title">{{ ad.title }}</h3>
+                            <div class="top-ad-card__stats">
+                                <div class="stat-item">
+                                    <span class="stat-item__label">Total Plays</span>
+                                    <span class="stat-item__value">{{ ad.plays | number }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-item__label">Total Duration</span>
+                                    <span class="stat-item__value">{{
+                                        formatDuration((ad.plays || 0) * (ad.duration || 0))
+                                    }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-item__label">Locations</span>
+                                    <span class="stat-item__value">{{ getLocationCount(ad) }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-item__label">Age</span>
+                                    <span class="stat-item__value">{{
+                                        calculateAge(ad.fetchedDate)
+                                    }}</span>
+                                </div>
+                                <div class="stat-item stat-item--chart">
+                                    <span class="stat-item__label">Trend (4 Weeks)</span>
+                                    <div class="stat-item__chart">
+                                        <apx-chart
+                                            [series]="
+                                                getTrendChartOptions(generateTrendData(ad)).series!
+                                            "
+                                            [chart]="
+                                                getTrendChartOptions(generateTrendData(ad)).chart!
+                                            "
+                                            [dataLabels]="
+                                                getTrendChartOptions(generateTrendData(ad))
+                                                    .dataLabels!
+                                            "
+                                            [stroke]="
+                                                getTrendChartOptions(generateTrendData(ad)).stroke!
+                                            "
+                                            [markers]="
+                                                getTrendChartOptions(generateTrendData(ad)).markers!
+                                            "
+                                            [xaxis]="
+                                                getTrendChartOptions(generateTrendData(ad)).xaxis!
+                                            "
+                                            [tooltip]="
+                                                getTrendChartOptions(generateTrendData(ad)).tooltip!
+                                            "
+                                            [fill]="
+                                                getTrendChartOptions(generateTrendData(ad)).fill!
+                                            "></apx-chart>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ntv-card>
+            }
+        </div>
+    }
+</div>

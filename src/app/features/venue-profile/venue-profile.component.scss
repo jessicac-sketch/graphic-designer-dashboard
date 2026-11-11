@@ -1,0 +1,295 @@
+// Page-specific styles - using shared .page styles from global styles.scss
+
+.venue-profile {
+    &__loading {
+        margin: 0;
+        padding: 2rem 0;
+        text-align: center;
+        color: var(--app-content-muted);
+        font-size: 0.875rem;
+    }
+
+    &__top {
+        display: grid;
+        // 55/45 split, same pattern as Map View's map/panel columns.
+        grid-template-columns: minmax(0, 55fr) minmax(20rem, 45fr);
+        gap: 0.75rem;
+        // Stretch (the default, but explicit here since it's load-bearing):
+        // both cards match the row's height, whichever one is taller -
+        // otherwise the chart card is only as tall as its own fixed-height
+        // chart, visibly shorter than the profile card next to it.
+        align-items: stretch;
+
+        @media (max-width: 900px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__card {
+        // A plain div, not ntv-card: ntv-card's own inner .card element
+        // fills the host box with its own background, so padding put on
+        // the host only shows the page's background through the gap - see
+        // Map View's own panel/chart-card for the same fix.
+        background: var(--app-surface-raised);
+        border: 1px solid var(--app-surface-border);
+        padding: 1.5rem;
+        height: 100%;
+    }
+
+    &__card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--app-surface-border);
+    }
+
+    &__card-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--app-content-primary);
+    }
+
+    &__id {
+        font-size: 0.8125rem;
+        color: var(--app-content-muted);
+    }
+
+    &__category-pill {
+        @apply shrink-0 whitespace-nowrap border border-brand bg-brand-soft px-3.5 py-1 text-[0.8125rem] font-semibold text-brand;
+    }
+
+    &__info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.25rem;
+    }
+
+    &__info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.625rem;
+
+        i {
+            margin-top: 0.2rem;
+            color: var(--app-brand);
+            font-size: 0.9rem;
+        }
+
+        > div {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+
+    &__info-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--app-content-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    &__info-value {
+        font-size: 0.9rem;
+        color: var(--app-content-primary);
+    }
+
+    &__devices {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--app-surface-border);
+    }
+
+    &__devices-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.625rem;
+    }
+
+    &__device-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background-color: var(--app-surface-base);
+        border: 1px solid var(--app-surface-border);
+        padding: 0.3rem 0.75rem;
+        font-size: 0.8125rem;
+        color: var(--app-content-primary);
+
+        i {
+            color: var(--app-brand);
+            font-size: 0.8rem;
+        }
+    }
+
+    &__chart-card {
+        background: var(--app-surface-raised);
+        border: 1px solid var(--app-surface-border);
+        padding: 1.5rem;
+        height: 100%;
+        // Column layout so the chart itself (flex: 1) can grow to fill
+        // whatever height the grid stretched this card to, instead of
+        // sitting at its own fixed min-height with empty space below.
+        display: flex;
+        flex-direction: column;
+
+        app-daily-ads-bar-chart {
+            flex: 1;
+            min-height: 0;
+        }
+    }
+
+    &__panel-subtitle {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--app-content-secondary);
+    }
+
+    &__chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    // Sum of the chart's "Total" line - brand chip, the same color as that line
+    // (CHART_COLORS.brand) so the number visually ties back to it.
+    &__chart-total {
+        @apply shrink-0 border border-brand bg-brand-soft px-3.5 py-1 text-[0.8125rem] font-semibold tabular-nums text-brand;
+        white-space: nowrap;
+    }
+
+    &__stats {
+        margin-bottom: 1rem;
+    }
+
+    // Same card chrome Ranking Data wraps its own tables in (ntv-card
+    // [config]="tableCardConfig") - the inner content div carries the
+    // padding, matching dashboard.component.scss's own __table-content.
+    &__table-content {
+        padding: 1.5rem;
+        max-width: 100%;
+
+        ::ng-deep .pagination {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        ntv-table {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+}
+
+// Mirrors RankingDataComponent's own mini-stat row (ranking-data__mini-stat*) -
+// duplicated here since Angular component styles are encapsulated
+// per-component, not inherited. Kept in sync by hand, not a shared
+// stylesheet, matching this codebase's existing copy-mirror
+// pattern for duplicated tab/table logic (see State/Category Ranking).
+.venue-profile__mini-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
+.venue-profile__mini-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    background: none;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: var(--app-surface-hover);
+    }
+
+    &--active {
+        background-color: var(--app-brand-soft);
+    }
+}
+
+.venue-profile__mini-stat-separator {
+    color: var(--app-surface-border);
+}
+
+.venue-profile__mini-stat-swatch {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: var(--app-content-muted);
+
+    &--green {
+        background-color: var(--app-status-good);
+    }
+
+    &--yellow {
+        background-color: var(--app-status-warn);
+    }
+
+    &--red {
+        background-color: var(--app-status-crit);
+    }
+}
+
+.venue-profile__mini-stat-label {
+    color: var(--app-content-muted);
+}
+
+.venue-profile__mini-stat-value {
+    font-weight: 700;
+    color: var(--app-content-primary);
+}
+
+.cell-with-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+// Same box as Ranking Data's thumbnails: a fixed 80x45 (16:9) for creatives and
+// screenshots alike. `block` + `max-width: none` stop Tailwind's preflight (img/video
+// max-width: 100%) and inline baseline gaps from resizing one but not the other.
+.creative-thumbnail {
+    @apply block shrink-0 bg-surface-border object-cover;
+    width: 80px;
+    height: 45px;
+    max-width: none;
+
+    &--placeholder {
+        @apply bg-surface-border;
+    }
+
+    // Not available yet (no proof-of-play screenshot): a muted "--" in the same box,
+    // outlined instead of filled
+    &--empty {
+        @apply flex items-center justify-center border border-surface-border bg-transparent text-sm text-content-muted;
+    }
+
+    &--clickable {
+        cursor: pointer;
+    }
+}
+
+::ng-deep {
+    // Highlight play records by proof-of-play duration - --pop-row-color is
+    // set inline per row; the rule is a no-op when it's unset.
+    .pop-row td {
+        background-color: rgba(var(--pop-row-color), 0.15) !important;
+    }
+}

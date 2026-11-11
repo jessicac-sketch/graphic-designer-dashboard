@@ -1,0 +1,31 @@
+.app-shell {
+    @apply flex h-screen overflow-hidden;
+
+    /* Always shown: full width, or the icon rail (folded, or under 992px) */
+    &__sidebar {
+        @apply block shrink-0;
+    }
+
+    &__main {
+        @apply flex min-w-0 flex-1 flex-col;
+    }
+
+    &__content {
+        @apply flex-1 overflow-y-auto p-4 lg:p-6;
+    }
+
+    /* Covers the whole viewport (sidebar included) while a route is navigating, so
+       further clicks are blocked during the transition */
+    &__nav-overlay {
+        @apply fixed inset-0 z-[999] flex flex-col items-center justify-center gap-3;
+        background-color: color-mix(in srgb, var(--app-surface-base) 80%, transparent);
+    }
+
+    &__nav-spinner {
+        @apply text-3xl text-brand;
+    }
+
+    &__nav-text {
+        @apply text-sm font-semibold text-content-secondary;
+    }
+}

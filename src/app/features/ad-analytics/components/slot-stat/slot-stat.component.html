@@ -1,0 +1,9 @@
+@if (slots().length > 0) {
+    <span
+        class="slot-stat"
+        title="Slots with a playlist content ID / slots with none recorded"
+        data-testid="slot-stat">
+        <span class="slot-stat__value">{{ withId() | number }} / {{ withoutId() | number }}</span>
+        <span class="slot-stat__label">with slots / without slots</span>
+    </span>
+}
