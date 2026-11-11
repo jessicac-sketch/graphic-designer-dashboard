@@ -5,3 +5,4 @@
 
 export * from './library.controller.js';
 export * from './media-files.controller.js';
+export * from './users.controller.js';

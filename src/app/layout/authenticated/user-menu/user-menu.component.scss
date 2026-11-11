@@ -34,6 +34,14 @@
         @apply flex flex-col border border-surface-border bg-surface-raised p-1.5 shadow-xl;
     }
 
+    &__role {
+        @apply mt-1 self-start border border-surface-border px-1.5 text-micro uppercase tracking-wide text-brand;
+    }
+
+    &__role {
+        @apply mt-1 self-start border border-surface-border px-1.5 text-micro uppercase tracking-wide text-brand;
+    }
+
     &__panel-header {
         @apply flex flex-col border-b border-surface-border px-3 pb-2.5 pt-2;
     }

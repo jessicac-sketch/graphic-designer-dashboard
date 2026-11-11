@@ -25,7 +25,9 @@ import type {
     LibraryTaxonomy,
     LibraryUploadConfig,
 } from '../types/library.types.js';
+import type { UserRole } from '../types/user.types.js';
 import { getSupabase } from './supabase-client.service.js';
+import { usersService } from './users.service.js';
 
 /** Table of asset records (supabase/migrations). */
 const ASSETS_TABLE = 'library_assets';
@@ -299,19 +301,21 @@ export class LibraryService {
      *
      * @param id - The asset's ID
      * @param status - The new status
-     * @returns {Promise<LibraryAsset | 'not_found' | 'no_workflow'>} The updated asset, or
-     * why it couldn't be updated
+     * @param role - Role of the user making the change (see STATUS_TRANSITION_RULES)
+     * @returns {Promise<LibraryAsset | 'not_found' | 'no_workflow' | 'forbidden'>} The
+     * updated asset, or why it couldn't be updated
      * @throws {Error} When a query fails
      */
     async updateStatus(
         id: string,
         status: LibraryAssetStatus,
-    ): Promise<LibraryAsset | 'not_found' | 'no_workflow'> {
+        role: UserRole,
+    ): Promise<LibraryAsset | 'not_found' | 'no_workflow' | 'forbidden'> {
         const supabase = getSupabase();
 
         const found = await supabase
             .from(ASSETS_TABLE)
-            .select('category_id')
+            .select('category_id, status')
             .eq('id', id)
             .maybeSingle();
         if (found.error) {
@@ -320,9 +324,15 @@ export class LibraryService {
         if (!found.data) {
             return 'not_found';
         }
-        const categoryId = (found.data as { category_id: string }).category_id;
-        if (!(LIBRARY_WORKFLOW_CATEGORIES as readonly string[]).includes(categoryId)) {
+        const current = found.data as { category_id: string; status: string | null };
+        if (!(LIBRARY_WORKFLOW_CATEGORIES as readonly string[]).includes(current.category_id)) {
             return 'no_workflow';
+        }
+        if (
+            current.status !== status &&
+            !usersService.canChangeStatus(role, current.status, status)
+        ) {
+            return 'forbidden';
         }
 
         const { data, error } = await supabase
@@ -357,7 +367,8 @@ export class LibraryService {
     }
 
     /**
-     * Changes an asset's editable details (its description), keeping it searchable by them.
+     * Changes an asset's editable details (its title and / or description), keeping it
+     * searchable by them. Renaming changes only the title: the file's URL stays the same.
      *
      * @param id - The asset's ID
      * @param update - The new details
@@ -373,16 +384,15 @@ export class LibraryService {
             return null;
         }
 
+        const title = update.title ?? current.title;
+        const description = update.description ?? current.description;
         const { data, error } = await getSupabase()
             .from(ASSETS_TABLE)
             .update({
-                description: update.description,
-                search_text: this.searchText(
-                    current.title,
-                    current.path,
-                    current.tags,
-                    update.description,
-                ),
+                title,
+                description,
+                updated_at: new Date().toISOString(),
+                search_text: this.searchText(title, current.path, current.tags, description),
             })
             .eq('id', id)
             .select('*')

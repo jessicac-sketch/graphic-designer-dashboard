@@ -1,4 +1,5 @@
 export * from './api-error-message.util';
+export * from './can-change-status.util';
 export * from './export.util';
 export * from './file-size.util';
 export * from './format-share.util';

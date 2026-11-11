@@ -12,7 +12,7 @@
                 <app-brand size="lg" [caption]="caption" />
                 <span class="login__divider" aria-hidden="true"></span>
                 <h1 class="login__title">Sign in</h1>
-                <p class="login__subtitle">Sign in with the demo account (see README.md).</p>
+                <p class="login__subtitle">Use the email and password your admin gave you.</p>
             </header>
 
             <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
@@ -20,7 +20,7 @@
                     id="login-email"
                     type="email"
                     label="Email"
-                    placeholder="demo@example.com"
+                    placeholder="you@company.com"
                     formControlName="email"
                     [error]="getEmailError()"
                     [variant]="getEmailError() ? 'error' : 'default'" />

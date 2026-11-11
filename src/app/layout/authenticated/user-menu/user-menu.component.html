@@ -28,7 +28,21 @@
         <div class="user-menu__panel-header">
             <span class="user-menu__name">{{ displayName() }}</span>
             <span class="user-menu__email">{{ email() }}</span>
+            @if (roleLabel()) {
+                <span class="user-menu__role">{{ roleLabel() }}</span>
+            }
         </div>
+
+        @if (canChangePassword()) {
+            <a
+                class="user-menu__item"
+                role="menuitem"
+                routerLink="/change-password"
+                (click)="menu.hide()">
+                <i class="user-menu__item-icon fa-sharp fa-regular fa-key" aria-hidden="true"></i>
+                Change password
+            </a>
+        }
 
         <button
             type="button"

@@ -9,11 +9,13 @@ import express from 'express';
 import { SERVER_CONFIG } from './config/environment.config.js';
 import { validateOrigin } from './middleware/origin.middleware.js';
 import { requireAuth } from './middleware/require-auth.middleware.js';
+import { requireRole } from './middleware/require-role.middleware.js';
 import { resolveDateZone } from './middleware/resolve-date-zone.middleware.js';
 import { securityHeaders } from './middleware/security.middleware.js';
 import authRoutes from './routes/auth.routes.js';
 import libraryRoutes from './routes/library.routes.js';
 import mediaFilesRoutes from './routes/media-files.routes.js';
+import usersRoutes from './routes/users.routes.js';
 import { httpClient } from './services/http-client.service.js';
 
 /**
@@ -74,6 +76,12 @@ app.use('/api/media-files', requireAuth, resolveDateZone, mediaFilesRoutes);
  * Requires a valid session - see `requireAuth`.
  */
 app.use('/api/library', requireAuth, libraryRoutes);
+
+/**
+ * BFF API Routes - User management
+ * Supabase Auth accounts. Admins only - see `requireAuth` and `requireRole`.
+ */
+app.use('/api/users', requireAuth, requireRole('admin'), usersRoutes);
 
 /**
  * BFF API Routes - Generic Proxy

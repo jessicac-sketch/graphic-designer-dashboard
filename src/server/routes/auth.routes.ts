@@ -32,4 +32,14 @@ router.post('/logout', (req, res) => authController.logout(req, res));
  */
 router.get('/session', (req, res) => authController.session(req, res));
 
+/**
+ * POST /api/auth/password
+ * Changes the signed-in user's password - also while they still have a temporary one,
+ * which every other endpoint refuses (403 password_change_required).
+ *
+ * @body currentPassword - Current (or temporary) password
+ * @body newPassword - New password, 8 to 72 characters
+ */
+router.post('/password', (req, res) => authController.changePassword(req, res));
+
 export default router;

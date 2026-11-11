@@ -259,10 +259,13 @@ export interface LibraryAssetList {
     statusCounts: Record<LibraryAssetStatus | 'all', number> | null;
 }
 
-/** Editable details of an asset (PATCH /api/library/assets/:id). */
+/** Editable details of an asset (PATCH /api/library/assets/:id); only the fields given change. */
 export interface LibraryAssetDetailsUpdate {
+    /** New title, i.e. the file name without its extension (1 to 200 characters) */
+    title?: string;
+
     /** New description (may be empty) */
-    description: string;
+    description?: string;
 }
 
 /** A row of the `library_asset_comments` table (supabase/migrations). */
@@ -305,4 +308,157 @@ export interface LibraryComment {
 
     /** Replies, oldest first (always empty on a reply) */
     replies: LibraryComment[];
+}
+
+/** Headline numbers of the library dashboard. */
+export interface LibraryDashboardTotals {
+    /** Assets in the library */
+    assets: number;
+
+    /** Assets added since Monday (UTC) */
+    uploadsThisWeek: number;
+
+    /** Assets added the week before */
+    uploadsLastWeek: number;
+
+    /** Workflow assets waiting on someone: in Review or Approval */
+    waiting: number;
+
+    /** Workflow assets Live */
+    live: number;
+
+    /** Comment threads not resolved */
+    openThreads: number;
+}
+
+/** A workflow category's assets per status. */
+export interface LibraryWorkflowSummary {
+    /** Category, e.g. "channel" */
+    categoryId: LibraryCategoryId;
+
+    /** Its label, e.g. "Channel" */
+    label: string;
+
+    /** Assets in the category */
+    total: number;
+
+    /** Assets per status */
+    counts: Record<LibraryAssetStatus, number>;
+}
+
+/** Assets added in one week. */
+export interface LibraryWeekCount {
+    /** The week's Monday, as YYYY-MM-DD (UTC) */
+    weekStart: string;
+
+    /** Assets added that week */
+    count: number;
+}
+
+/** An asset waiting in Review or Approval. */
+export interface LibraryWaitingAsset {
+    /** Asset ID */
+    id: string;
+
+    /** Title */
+    title: string;
+
+    /** Where it's filed, e.g. "Channel › Extreme Sports › Skiing" */
+    location: string;
+
+    /** Its status (review or approval) */
+    status: LibraryAssetStatus;
+
+    /** Since when, as a UTC ISO timestamp */
+    since: string;
+}
+
+/** A recently added asset. */
+export interface LibraryRecentUpload {
+    /** Asset ID */
+    id: string;
+
+    /** Title */
+    title: string;
+
+    /** Where it's filed */
+    location: string;
+
+    /** File format */
+    fileType: LibraryFileType;
+
+    /** Preview image URL */
+    thumbnailUrl: string;
+
+    /** The file (for a video's first frame) */
+    fileUrl: string;
+
+    /** When it was added, as a UTC ISO timestamp */
+    createdAt: string;
+
+    /** Who added it (email), or null when unknown */
+    createdBy: string | null;
+}
+
+/** A recent comment, with the asset it's on. */
+export interface LibraryRecentComment {
+    /** Comment ID */
+    id: string;
+
+    /** The asset */
+    assetId: string;
+
+    /** The asset's title */
+    assetTitle: string;
+
+    /** Who wrote it (email) */
+    author: string;
+
+    /** The text */
+    body: string;
+
+    /** When it was written, as a UTC ISO timestamp */
+    createdAt: string;
+
+    /** Whether it's a reply */
+    isReply: boolean;
+}
+
+/** How many assets someone added. */
+export interface LibraryContributor {
+    /** Their email */
+    email: string;
+
+    /** Assets they added */
+    count: number;
+}
+
+/** Everything the dashboard shows. */
+export interface LibraryDashboard {
+    /** Headline numbers */
+    totals: LibraryDashboardTotals;
+
+    /** Per workflow category, assets per status */
+    workflow: LibraryWorkflowSummary[];
+
+    /** Assets per category, in taxonomy order */
+    categories: LibraryCount[];
+
+    /** Assets per file format */
+    fileTypes: Record<LibraryFileType, number>;
+
+    /** Assets added per week, oldest first, the current week last */
+    weeklyUploads: LibraryWeekCount[];
+
+    /** Workflow assets waiting longest in Review or Approval, oldest first */
+    waitingLongest: LibraryWaitingAsset[];
+
+    /** Latest uploads, newest first */
+    recentUploads: LibraryRecentUpload[];
+
+    /** Latest comments, newest first */
+    recentComments: LibraryRecentComment[];
+
+    /** Who added the most assets in the last CONTRIBUTOR_DAYS days, most first */
+    contributors: LibraryContributor[];
 }

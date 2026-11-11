@@ -17,6 +17,14 @@ const router: Router = express.Router();
 router.get('/taxonomy', (req, res) => libraryController.getTaxonomy(req, res));
 
 /**
+ * GET /api/library/dashboard
+ * The Dashboard's numbers: totals, workflow per status, uploads per week (12 weeks,
+ * UTC Monday-based), assets waiting longest, latest uploads and comments, top uploaders
+ * (last 30 days).
+ */
+router.get('/dashboard', (req, res) => libraryController.getDashboard(req, res));
+
+/**
  * GET /api/library/assets
  * Lists assets, filtered and sorted, with per-file-type counts.
  *
@@ -61,9 +69,10 @@ router.get('/assets/:id', (req, res) => libraryController.getAsset(req, res));
 
 /**
  * PATCH /api/library/assets/:id
- * Changes an asset's editable details.
+ * Changes an asset's editable details (only the fields given).
  *
- * @body description - Free text, at most 1000 characters (may be empty)
+ * @body title - New name, 1 to 200 characters (optional; a trailing .png/.jpg/.mp4 is dropped)
+ * @body description - Free text, at most 1000 characters, may be empty (optional)
  */
 router.patch('/assets/:id', (req, res) => libraryController.updateDetails(req, res));
 

@@ -6,3 +6,4 @@
 export * from './dashboard';
 export * from './library';
 export * from './time-display';
+export * from './users';

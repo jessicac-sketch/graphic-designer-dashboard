@@ -12,6 +12,7 @@ import type {
     LibraryAssetQuery,
     LibraryComment,
     LibraryCreateAssetsRequest,
+    LibraryDashboard,
     LibraryTaxonomy,
     LibraryUploadConfig,
 } from '@shared/interfaces/library';
@@ -108,6 +109,17 @@ export class LibraryService {
     }
 
     /**
+     * Fetches the Dashboard's numbers.
+     *
+     * @returns {Observable<LibraryDashboard>} Totals, workflow, uploads per week, lists
+     */
+    public getDashboard(): Observable<LibraryDashboard> {
+        return this.http
+            .get<{ data: LibraryDashboard }>(`${this.apiUrl}/dashboard`)
+            .pipe(map((response) => response.data));
+    }
+
+    /**
      * Fetches one asset, for its page.
      *
      * @param id - The asset's ID
@@ -130,6 +142,22 @@ export class LibraryService {
         return this.http
             .patch<{ data: LibraryAsset }>(`${this.apiUrl}/assets/${encodeURIComponent(id)}`, {
                 description,
+            })
+            .pipe(map((response) => response.data));
+    }
+
+    /**
+     * Renames an asset (its title, which is also its file name without the extension).
+     * The file's link stays the same.
+     *
+     * @param id - The asset's ID
+     * @param title - The new name
+     * @returns {Observable<LibraryAsset>} The updated asset
+     */
+    public renameAsset(id: string, title: string): Observable<LibraryAsset> {
+        return this.http
+            .patch<{ data: LibraryAsset }>(`${this.apiUrl}/assets/${encodeURIComponent(id)}`, {
+                title,
             })
             .pipe(map((response) => response.data));
     }

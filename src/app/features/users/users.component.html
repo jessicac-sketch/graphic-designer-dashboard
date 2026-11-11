@@ -1,0 +1,318 @@
+<div class="page users">
+    <app-page-header
+        eyebrow="Admin"
+        title="Users"
+        subtitle="Who can sign in, and what each person may do">
+        <ntv-button size="xl" [shadow]="false" data-testid="users-add" (buttonClick)="openAdd()">
+            <span class="users__button">
+                <i class="fa-sharp fa-regular fa-user-plus" aria-hidden="true"></i>
+                Add user
+            </span>
+        </ntv-button>
+    </app-page-header>
+
+    <!-- What each role may do -->
+    <ul class="users__roles" aria-label="Roles">
+        @for (role of roles; track role.value) {
+            <li class="users__role">
+                <span class="users__role-name">
+                    <i class="fa-sharp fa-regular fa-{{ role.icon }}" aria-hidden="true"></i>
+                    {{ role.label }}
+                </span>
+                <span class="users__role-description">{{ role.description }}</span>
+            </li>
+        }
+    </ul>
+
+    <ntv-card [config]="cardConfig" class="users__card">
+        <div class="users__toolbar">
+            <ntv-input
+                class="users__search"
+                placeholder="Search name or email…"
+                [formControl]="searchControl"
+                [clearable]="true"
+                [nativeAutocomplete]="false">
+                <i
+                    left-icon
+                    class="users__search-icon fa-sharp fa-regular fa-magnifying-glass"
+                    aria-hidden="true"></i>
+            </ntv-input>
+            <p class="users__note">
+                The demo login from the server's environment is a backup Admin and isn't listed.
+            </p>
+        </div>
+
+        @if (actionError() && !dialog()) {
+            <p class="users__notice" role="alert">
+                {{ actionError() }}
+                <button type="button" class="users__link" (click)="actionError.set(null)">
+                    Dismiss
+                </button>
+            </p>
+        }
+
+        @if (users() === undefined) {
+            <ul class="users-list" aria-hidden="true">
+                @for (row of skeletonRows; track row) {
+                    <li class="users-list__row">
+                        <ntv-skeleton variant="custom" width="100%" height="40px" />
+                    </li>
+                }
+            </ul>
+        } @else if (users() === null) {
+            <div class="users__message users__message--error">
+                <p>{{ loadError() }}</p>
+                <button type="button" class="users__link" (click)="load()">Retry</button>
+            </div>
+        } @else if (visibleUsers().length === 0) {
+            <div class="users__message">
+                <p>
+                    {{
+                        users()!.length
+                            ? 'No one matches the search.'
+                            : 'No users yet. Add the first one with "Add user".'
+                    }}
+                </p>
+            </div>
+        } @else {
+            <ul class="users-list">
+                @for (user of visibleUsers(); track user.id) {
+                    <li
+                        class="users-list__row"
+                        [class.users-list__row--disabled]="!user.active"
+                        data-testid="users-row">
+                        <div class="users-list__identity">
+                            <span class="users-list__avatar" aria-hidden="true">
+                                {{ user.name | initials }}
+                            </span>
+                            <div class="users-list__name">
+                                <span class="users-list__title">
+                                    {{ user.name }}
+                                    @if (user.id === myId()) {
+                                        <span class="users-list__you">You</span>
+                                    }
+                                </span>
+                                <span class="users-list__email">{{ user.email }}</span>
+                            </div>
+                        </div>
+
+                        <label class="users-list__role">
+                            <span class="sr-only">Role of {{ user.name }}</span>
+                            <select
+                                class="users__select"
+                                [value]="user.role"
+                                [disabled]="isBusy(user) || user.id === myId()"
+                                (change)="changeRole(user, $event)">
+                                @for (role of roles; track role.value) {
+                                    <option
+                                        [value]="role.value"
+                                        [selected]="role.value === user.role">
+                                        {{ role.label }}
+                                    </option>
+                                }
+                            </select>
+                        </label>
+
+                        <div class="users-list__state">
+                            @if (!user.active) {
+                                <span class="users-list__badge users-list__badge--off"
+                                    >Disabled</span
+                                >
+                            } @else if (user.mustChangePassword) {
+                                <span class="users-list__badge users-list__badge--warn">
+                                    Temporary password
+                                </span>
+                            } @else {
+                                <span class="users-list__badge users-list__badge--on">Active</span>
+                            }
+                            <span class="users-list__seen">
+                                @if (user.lastSignInAt) {
+                                    Last sign-in {{ user.lastSignInAt | date: 'MMM d, h:mm a' }}
+                                } @else {
+                                    Never signed in
+                                }
+                            </span>
+                        </div>
+
+                        <div class="users-list__actions">
+                            @if (isBusy(user)) {
+                                <i
+                                    class="users-list__spinner fa-sharp fa-regular fa-spinner-third fa-spin"
+                                    aria-label="Saving"></i>
+                            }
+                            @if (user.id !== myId()) {
+                                <button
+                                    type="button"
+                                    class="users__action"
+                                    [disabled]="isBusy(user)"
+                                    (click)="dialog.set({ kind: 'reset', user: user })">
+                                    <i class="fa-sharp fa-regular fa-key" aria-hidden="true"></i>
+                                    Reset password
+                                </button>
+                                <button
+                                    type="button"
+                                    class="users__action"
+                                    [disabled]="isBusy(user)"
+                                    (click)="toggleActive(user)">
+                                    <i
+                                        class="fa-sharp fa-regular"
+                                        [class.fa-ban]="user.active"
+                                        [class.fa-circle-check]="!user.active"
+                                        aria-hidden="true"></i>
+                                    {{ user.active ? 'Disable' : 'Enable' }}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="users__action users__action--danger"
+                                    [disabled]="isBusy(user)"
+                                    [attr.aria-label]="'Delete ' + user.name"
+                                    (click)="dialog.set({ kind: 'delete', user: user })">
+                                    <i class="fa-sharp fa-regular fa-trash" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </ntv-card>
+
+    <!-- Add user -->
+    <app-dialog
+        [visible]="dialog()?.kind === 'add'"
+        title="Add user"
+        actionLabel="Add user"
+        actionIcon="user-plus"
+        [busy]="busy().has('dialog')"
+        (action)="add()"
+        (closed)="onDialogClosed('add')">
+        <form class="users__form" [formGroup]="addForm" (ngSubmit)="add()" novalidate>
+            <ntv-input
+                id="user-name"
+                label="Name"
+                placeholder="e.g. Ana Cruz"
+                formControlName="name"
+                [error]="fieldError('name')"
+                [variant]="fieldError('name') ? 'error' : 'default'" />
+            <ntv-input
+                id="user-email"
+                type="email"
+                label="Email"
+                placeholder="name@company.com"
+                formControlName="email"
+                [error]="fieldError('email')"
+                [variant]="fieldError('email') ? 'error' : 'default'" />
+
+            <fieldset class="users__role-picker">
+                <legend class="users__label">Role</legend>
+                @for (role of roles; track role.value) {
+                    <label class="users__role-option">
+                        <input type="radio" formControlName="role" [value]="role.value" />
+                        <span class="users__role-option-text">
+                            <span class="users__role-name">
+                                <i
+                                    class="fa-sharp fa-regular fa-{{ role.icon }}"
+                                    aria-hidden="true"></i>
+                                {{ role.label }}
+                            </span>
+                            <span class="users__role-description">{{ role.description }}</span>
+                        </span>
+                    </label>
+                }
+            </fieldset>
+
+            <p class="users__hint">
+                They get a temporary password (shown next) and choose their own on first sign-in.
+            </p>
+            @if (actionError()) {
+                <p class="users__error" role="alert">{{ actionError() }}</p>
+            }
+            <!-- Enter submits -->
+            <button type="submit" class="sr-only" tabindex="-1">Add user</button>
+        </form>
+    </app-dialog>
+
+    <!-- Temporary password handover -->
+    @if (dialog(); as current) {
+        @if (current.kind === 'password') {
+            <app-dialog
+                [visible]="true"
+                [title]="current.isNew ? 'User added' : 'Password reset'"
+                cancelLabel="Done"
+                (closed)="onDialogClosed('password')">
+                <div class="users__password">
+                    <p>
+                        Give this temporary password to <strong>{{ current.user.name }}</strong> ({{
+                            current.user.email
+                        }}). They'll choose their own password when they first sign in.
+                    </p>
+                    <div class="users__password-row">
+                        <code class="users__password-value" data-testid="users-temporary-password">
+                            {{ current.password }}
+                        </code>
+                        <ntv-button
+                            size="md"
+                            variant="outline"
+                            [shadow]="false"
+                            (buttonClick)="copyPassword()">
+                            <span class="users__button">
+                                <i
+                                    class="fa-sharp fa-regular"
+                                    [class.fa-copy]="!copied()"
+                                    [class.fa-check]="copied()"
+                                    aria-hidden="true"></i>
+                                {{ copied() ? 'Copied' : 'Copy' }}
+                            </span>
+                        </ntv-button>
+                    </div>
+                    <p class="users__hint">
+                        This is the only time it's shown. If it's lost, use "Reset password".
+                    </p>
+                    @if (actionError()) {
+                        <p class="users__error" role="alert">{{ actionError() }}</p>
+                    }
+                </div>
+            </app-dialog>
+        }
+
+        @if (current.kind === 'reset') {
+            <app-dialog
+                [visible]="true"
+                title="Reset password?"
+                actionLabel="Reset password"
+                actionIcon="key"
+                [busy]="busy().has('dialog')"
+                (action)="confirmReset()"
+                (closed)="onDialogClosed('reset')">
+                <p class="users__confirm">
+                    {{ current.user.name }} gets a new temporary password and must choose a new one
+                    at their next sign-in. Their current password stops working.
+                </p>
+                @if (actionError()) {
+                    <p class="users__error" role="alert">{{ actionError() }}</p>
+                }
+            </app-dialog>
+        }
+
+        @if (current.kind === 'delete') {
+            <app-dialog
+                [visible]="true"
+                title="Delete user?"
+                actionLabel="Delete"
+                actionIcon="trash"
+                actionTone="danger"
+                [busy]="busy().has('dialog')"
+                (action)="confirmDelete()"
+                (closed)="onDialogClosed('delete')">
+                <p class="users__confirm">
+                    {{ current.user.name }} ({{ current.user.email }}) won't be able to sign in
+                    anymore. Their uploads and comments stay. To block sign-in but keep the account,
+                    use "Disable" instead.
+                </p>
+                @if (actionError()) {
+                    <p class="users__error" role="alert">{{ actionError() }}</p>
+                }
+            </app-dialog>
+        }
+    }
+</div>

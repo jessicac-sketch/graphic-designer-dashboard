@@ -8,13 +8,14 @@ import {
     viewChild,
     ViewEncapsulation,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 /** Third Party Imports */
 import { Popover } from '@ntv360/component-pantry';
 
 /** Local Imports */
 import { AuthService } from '@core/services/auth';
+import { USER_ROLES } from '@shared/models/users';
 import { InitialsPipe } from '@shared/pipes/initials';
 
 /**
@@ -26,7 +27,7 @@ import { InitialsPipe } from '@shared/pipes/initials';
  */
 @Component({
     selector: 'app-user-menu',
-    imports: [Popover, InitialsPipe],
+    imports: [Popover, InitialsPipe, RouterLink],
     templateUrl: './user-menu.component.html',
     styleUrl: './user-menu.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -52,13 +53,28 @@ export class UserMenuComponent {
     private readonly menu = viewChild.required<Popover>('menu');
 
     /**
-     * Name shown on the button: the email's local part (users have no display name)
+     * Name shown on the button (the email's local part when the user has no name)
      * @type {Signal<string>}
      */
     protected readonly displayName = computed(() => {
-        const email = this.authService.user()?.email ?? '';
-        return email.split('@')[0];
+        const user = this.authService.user();
+        return user?.name || (user?.email ?? '').split('@')[0];
     });
+
+    /**
+     * The signed-in user's role, e.g. "Graphics QC"
+     * @type {Signal<string>}
+     */
+    protected readonly roleLabel = computed(() => {
+        const role = this.authService.role();
+        return USER_ROLES.find((entry) => entry.value === role)?.label ?? '';
+    });
+
+    /**
+     * Whether the user can change their password here (not the demo account)
+     * @type {Signal<boolean>}
+     */
+    protected readonly canChangePassword = computed(() => !this.authService.user()?.isDemo);
 
     /**
      * Signed-in user's email

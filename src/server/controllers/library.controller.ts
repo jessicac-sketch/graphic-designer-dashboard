@@ -9,8 +9,10 @@ import {
     LIBRARY_MAX_TAG_LENGTH,
     LIBRARY_MAX_TAGS,
 } from '../config/library-taxonomy.config.js';
+import { libraryDashboardService } from '../services/library-dashboard.service.js';
 import { libraryService } from '../services/library.service.js';
 import type {
+    LibraryAssetDetailsUpdate,
     LibraryAssetQuery,
     LibraryCategoryId,
     LibraryCreateAssetsRequest,
@@ -97,6 +99,23 @@ export class LibraryController {
     }
 
     /**
+     * Handles GET /api/library/dashboard
+     * The Dashboard's numbers: totals, workflow per status, uploads per week, waiting
+     * assets, latest uploads and comments, top uploaders.
+     *
+     * @param _req - Express request
+     * @param res - Express response
+     * @returns {Promise<void>}
+     */
+    async getDashboard(_req: Request, res: Response): Promise<void> {
+        try {
+            res.json({ data: await libraryDashboardService.getDashboard() });
+        } catch (error) {
+            this.serverError(res, error, 'Failed to load the dashboard');
+        }
+    }
+
+    /**
      * Handles GET /api/library/upload-config
      * How the browser uploads files: the Filestack API key, or null when not configured.
      *
@@ -163,9 +182,18 @@ export class LibraryController {
         }
 
         try {
-            const result = await libraryService.updateStatus(id, status);
+            const result = await libraryService.updateStatus(
+                id,
+                status,
+                req.user?.role ?? 'designer',
+            );
             if (result === 'not_found') {
                 res.status(404).json({ error: 'not_found', errorDescription: 'Asset not found' });
+            } else if (result === 'forbidden') {
+                res.status(403).json({
+                    error: 'forbidden',
+                    errorDescription: "Your role can't make this status change",
+                });
             } else if (result === 'no_workflow') {
                 this.badRequest(res, 'Only Channel and Sponsorship assets have a status');
             } else {
@@ -204,7 +232,7 @@ export class LibraryController {
 
     /**
      * Handles PATCH /api/library/assets/:id
-     * Changes an asset's editable details. Body: { description }.
+     * Changes an asset's editable details. Body: any of { title, description }.
      *
      * @param req - Express request
      * @param res - Express response
@@ -212,28 +240,55 @@ export class LibraryController {
      */
     async updateDetails(req: Request, res: Response): Promise<void> {
         const id = this.idParam(req, 'id');
-        const description: unknown = (req.body as Record<string, unknown> | undefined)?.[
-            'description'
-        ];
+        const { title, description } = (req.body ?? {}) as Record<string, unknown>;
         if (!id) {
             this.notFound(res, 'Asset not found');
             return;
         }
-        if (typeof description !== 'string') {
-            this.badRequest(res, 'description must be a string');
-            return;
+
+        const update: LibraryAssetDetailsUpdate = {};
+        if (title !== undefined) {
+            // Inner runs of spaces collapse; an extension typed by habit is dropped
+            const clean =
+                typeof title === 'string'
+                    ? title
+                          .trim()
+                          .replace(/\s+/g, ' ')
+                          .replace(/\.(png|jpe?g|mp4)$/i, '')
+                          .trim()
+                    : '';
+            if (!clean) {
+                this.badRequest(res, 'Enter a name');
+                return;
+            }
+            if (clean.length > 200) {
+                this.badRequest(res, 'A name can be at most 200 characters');
+                return;
+            }
+            update.title = clean;
         }
-        const clean = description.trim();
-        if (clean.length > LIBRARY_MAX_DESCRIPTION_LENGTH) {
-            this.badRequest(
-                res,
-                `The description can be at most ${LIBRARY_MAX_DESCRIPTION_LENGTH} characters`,
-            );
+        if (description !== undefined) {
+            if (typeof description !== 'string') {
+                this.badRequest(res, 'description must be a string');
+                return;
+            }
+            const clean = description.trim();
+            if (clean.length > LIBRARY_MAX_DESCRIPTION_LENGTH) {
+                this.badRequest(
+                    res,
+                    `The description can be at most ${LIBRARY_MAX_DESCRIPTION_LENGTH} characters`,
+                );
+                return;
+            }
+            update.description = clean;
+        }
+        if (Object.keys(update).length === 0) {
+            this.badRequest(res, 'Nothing to change');
             return;
         }
 
         try {
-            const asset = await libraryService.updateDetails(id, { description: clean });
+            const asset = await libraryService.updateDetails(id, update);
             if (asset) {
                 res.json({ data: asset });
             } else {

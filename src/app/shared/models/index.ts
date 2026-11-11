@@ -12,3 +12,4 @@ export * from './library';
 export * from './navigation';
 export * from './time-display';
 export * from './ui';
+export * from './users';

@@ -5,3 +5,5 @@
 
 export * from './auth';
 export * from './guest';
+export * from './role';
+export * from './signed-in';

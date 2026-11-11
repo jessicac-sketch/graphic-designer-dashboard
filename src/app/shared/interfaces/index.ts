@@ -8,3 +8,4 @@ export * from './dashboard';
 export * from './library';
 export * from './navigation';
 export * from './ui';
+export * from './users';

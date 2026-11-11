@@ -2,6 +2,7 @@
 import { Routes } from '@angular/router';
 
 /** Local Imports */
+import { roleGuard } from '@core/guards/role';
 import { AdAnalyticsComponent, AnalyticsComponent, SettingsComponent } from '@features';
 import { APP_NAME } from '@shared/models/app';
 
@@ -16,8 +17,8 @@ export const AUTHENTICATED_ROUTES: Routes = [
         pathMatch: 'full',
     },
     {
-        // Lazy-loaded: pulls in echarts (via DailyAdsBarChartComponent), kept out of
-        // the main bundle. Not re-exported from the '@features' barrel for that reason.
+        // The library dashboard, the first page after sign-in. Lazy-loaded like the other
+        // library pages; not re-exported from the '@features' barrel.
         path: 'dashboard',
         title: `Dashboard · ${APP_NAME}`,
         loadComponent: () => import('@features/dashboard').then((m) => m.DashboardComponent),
@@ -47,6 +48,13 @@ export const AUTHENTICATED_ROUTES: Routes = [
         path: 'asset/:id',
         title: `Asset · ${APP_NAME}`,
         loadComponent: () => import('@features/asset-detail').then((m) => m.AssetDetailComponent),
+    },
+    {
+        // User management, admins only
+        path: 'users',
+        title: `Users · ${APP_NAME}`,
+        canMatch: [roleGuard('admin')],
+        loadComponent: () => import('@features/users').then((m) => m.UsersComponent),
     },
     {
         path: 'ad/:id',

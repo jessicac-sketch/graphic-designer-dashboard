@@ -1,729 +1,366 @@
-<div class="dashboard">
-    <app-page-header eyebrow="Dashboard" title="Received Playables" [subtitle]="subtitle()">
-        <!-- Quick ranges and picker, for the range shared with the top bar's totals -->
-        <app-range-controls [disabled]="overview.isLoading()" />
+<div class="page dashboard">
+    <app-page-header eyebrow="Overview" title="Dashboard" [subtitle]="greeting()">
+        <div class="dashboard__header-actions">
+            @if (loadedAt(); as loaded) {
+                <span class="dashboard__updated">Updated {{ loaded | date: 'h:mm a' }}</span>
+            }
+            <button
+                type="button"
+                class="dashboard__refresh"
+                [disabled]="isRefreshing() || data() === undefined"
+                (click)="load()">
+                <i
+                    class="fa-sharp fa-regular fa-arrows-rotate"
+                    [class.fa-spin]="isRefreshing()"
+                    aria-hidden="true"></i>
+                Refresh
+            </button>
+        </div>
     </app-page-header>
 
-    <app-range-notice />
-
-    @let ov = overview.data();
-    @let geo = geography.data();
-    @let adsData = adsSection.data();
-
-    <!-- Headline totals -->
-    <div
-        #metricsRow
-        class="dashboard__metrics"
-        [class.dashboard__loading]="overview.isLoading() && ov">
-        @if (ov) {
-            <!-- Wider than its siblings, with the proof-of-play buckets on its right -->
-            <app-metric
-                class="dashboard__received"
-                label="Received"
-                [clickable]="true"
-                actionLabel="Go to the received breakdown"
-                (activate)="jumpTo('received')"
-                icon="inbox-in"
-                tone="brand"
-                hint="Playables received in the range"
-                [value]="ov.received"
-                [hasAside]="true">
-                <div metric-aside class="dashboard__pop">
-                    <span class="dashboard__pop-label">POP duration</span>
-                    <div class="dashboard__pop-buckets">
-                        @for (bucket of popBuckets(); track bucket.bucket) {
-                            <span class="dashboard__pop-bucket">
-                                <span class="dashboard__pop-count">
-                                    <span
-                                        class="dashboard__pop-swatch dashboard__pop-swatch--{{
-                                            bucket.bucket
-                                        }}"></span>
-                                    {{ bucket.value | number }}
-                                </span>
-                                <span class="dashboard__pop-range">{{ bucket.label }}</span>
-                            </span>
-                        }
-                    </div>
-                </div>
-            </app-metric>
-            <!-- Venues / devices: a venue can have several devices -->
-            <app-metric
-                label="Venues"
-                [clickable]="true"
-                actionLabel="Go to the venues breakdown"
-                (activate)="jumpTo('venues')"
-                secondaryLabel="devices"
-                icon="store"
-                hint="Venues that received at least one playable / their distinct device IDs (a venue can have several devices)"
-                [value]="ov.uniqueVenues"
-                [secondaryValue]="ov.uniqueDevices" />
-        } @else if (overview.hasError()) {
-            <app-section-error
-                class="col-span-full"
-                message="Failed to load the totals. This is usually a transient connection issue."
-                (retry)="overview.reload()" />
-        } @else {
-            @for (placeholder of overviewPlaceholders; track placeholder) {
-                <ntv-skeleton
-                    class="dashboard__skeleton"
-                    [class.dashboard__received]="placeholder === 0"
-                    variant="custom"
-                    width="100%"
-                    height="76px" />
+    @if (data() === undefined) {
+        <div class="dashboard__tiles" aria-hidden="true">
+            @for (tile of [0, 1, 2, 3, 4]; track tile) {
+                <ntv-skeleton variant="custom" width="100%" height="104px" />
             }
-        }
+        </div>
+        <div class="dashboard__grid" aria-hidden="true">
+            <ntv-skeleton class="dashboard__wide" variant="custom" width="100%" height="260px" />
+            <ntv-skeleton variant="custom" width="100%" height="260px" />
+            <ntv-skeleton class="dashboard__wide" variant="custom" width="100%" height="300px" />
+            <ntv-skeleton variant="custom" width="100%" height="300px" />
+        </div>
+    } @else if (data() === null) {
+        <div class="dashboard__message">
+            <i class="fa-sharp fa-regular fa-chart-simple" aria-hidden="true"></i>
+            <p>{{ loadError() }}</p>
+            <button type="button" class="dashboard__link" (click)="load()">Retry</button>
+        </div>
+    } @else {
+        @let dash = data()!;
 
-        <!-- Categories / states counts come from the geography call (the Hosts API) -->
-        @if (geo) {
-            <app-metric
-                label="Categories"
-                [clickable]="true"
-                actionLabel="Go to the categories breakdown"
-                (activate)="jumpTo('categories')"
-                [secondaryLabel]="unknownCategory() ? 'unknown' : null"
-                icon="tags"
-                hint="Venue categories with at least one receiving venue / venues with no known category, grouped as Unknown"
-                [value]="geo.uniqueCategories"
-                [secondaryValue]="unknownCategory() ? 1 : null"
-                [secondaryClickable]="true"
-                secondaryActionLabel="Show venues with no known category"
-                (secondaryClick)="openUnknownVenues('category')" />
-            <app-metric
-                label="States"
-                [clickable]="true"
-                actionLabel="Go to the states breakdown"
-                (activate)="jumpTo('states')"
-                [secondaryLabel]="unknownState() ? 'unknown' : null"
-                icon="map-location-dot"
-                hint="US states with at least one receiving venue / venues with no known state, grouped as Unknown"
-                [value]="geo.uniqueStates"
-                [secondaryValue]="unknownState() ? 1 : null"
-                [secondaryClickable]="true"
-                secondaryActionLabel="Show venues with no known state"
-                (secondaryClick)="openUnknownVenues('state')" />
-        } @else if (geography.hasError()) {
-            <app-section-error
-                class="col-span-full"
-                message="Failed to load the state and category counts. This is usually a transient connection issue."
-                (retry)="geography.reload()" />
-        } @else {
-            @for (placeholder of geographyPlaceholders; track placeholder) {
-                <ntv-skeleton
-                    class="dashboard__skeleton"
-                    variant="custom"
-                    width="100%"
-                    height="76px" />
-            }
-        }
-
-        <!-- Unique ads (overview call) last, after the geography tiles -->
-        @if (ov) {
-            <app-metric
-                label="Ads"
-                [clickable]="true"
-                actionLabel="Go to the ads breakdown"
-                (activate)="jumpTo('ads')"
-                icon="rectangle-ad"
-                hint="Distinct creatives (creative ID + source) received"
-                [value]="ov.uniqueAds" />
-        } @else if (!overview.hasError()) {
-            <ntv-skeleton class="dashboard__skeleton" variant="custom" width="100%" height="76px" />
-        }
-    </div>
-
-    <!-- Received timeline (45%) and venues with each venue's ads (55%) -->
-    <div class="dashboard__overview">
-        <!-- Received timeline: per hour for one day, per day for a range -->
-        <app-summary-card id="dashboard-received" [title]="timelineTitle()" icon="chart-column">
-            @if (overview.hasError()) {
-                <app-section-error
-                    message="Failed to load the chart."
-                    (retry)="overview.reload()" />
-            } @else {
-                <div class="dashboard__chart">
-                    <app-daily-ads-bar-chart
-                        [data]="ov?.timeline ?? []"
-                        [loading]="overview.isLoading()"
-                        totalLabel="Received"
-                        [showUniqueVenues]="true" />
-                </div>
-            }
-        </app-summary-card>
-
-        <!-- Distinct ads received per hour (one day) or per day (a range), like the timeline -->
-        <app-summary-card id="dashboard-unique-ads" [title]="uniqueAdsTitle()" icon="chart-line">
-            <!-- Unique ads in the range / unique ads of all time -->
-            <span
-                card-action
-                class="dashboard__total"
-                title="Unique ads received in the selected range / unique ads of all time"
-                data-testid="dashboard-unique-ads-total">
-                <span class="dashboard__total-value">
-                    {{ ov ? (ov.uniqueAds | number) : '--' }} /
-                    {{ allTimeUniqueAds() !== null ? (allTimeUniqueAds() | number) : '--' }}
+        <!-- Headline numbers -->
+        <div class="dashboard__tiles">
+            <a class="dashboard-tile" routerLink="/mini-library">
+                <span class="dashboard-tile__label">
+                    <i class="fa-sharp fa-regular fa-photo-film" aria-hidden="true"></i>
+                    Assets
                 </span>
-                <span class="dashboard__total-label">in range / all time</span>
-            </span>
-            @if (overview.hasError()) {
-                <app-section-error
-                    message="Failed to load the chart."
-                    (retry)="overview.reload()" />
-            } @else {
-                <div class="dashboard__chart">
-                    <app-daily-line-chart
-                        [data]="uniqueAdsSeries()"
-                        [loading]="overview.isLoading()"
-                        seriesLabel="Unique ads" />
-                </div>
-            }
-        </app-summary-card>
-    </div>
+                <span class="dashboard-tile__value">{{ dash.totals.assets }}</span>
+                <span class="dashboard-tile__note">In the Mini-Library</span>
+            </a>
 
-    <!-- Categories, states, ads and venues each have a drill-down, but only one shows at a time -
-         switching (the card-action slot, where "View all" used to sit) instead of
-         stacking all three means never having to scroll past two you don't want to reach
-         the one you do. -->
-    <div class="dashboard__breakdowns">
-        @if (activeBreakdown() === 'categories') {
-            <app-summary-card
-                id="dashboard-categories"
-                title="Categories"
-                icon="tags"
-                hint="Pick a category to see its states, then a state to see its venues."
-                [class.dashboard__loading]="geography.isLoading() && geo">
-                <app-search-field
-                    card-tools
-                    placeholder="Search categories"
-                    [value]="categorySearch()"
-                    (valueChange)="categorySearch.set($event)" />
-                <app-sort-control
-                    card-tools
-                    class="dashboard__ad-sort"
-                    label="Sort categories"
-                    [options]="categorySortOptions"
-                    [value]="categorySort()"
-                    (valueChange)="categorySort.set($event)"
-                    [direction]="categorySortDirection()"
-                    (directionChange)="categorySortDirection.set($event)" />
-                <app-sort-control
-                    card-action
-                    class="dashboard__breakdown-switcher"
-                    label="Show breakdown"
-                    icon="arrow-right-arrow-left"
-                    [options]="breakdownViewOptions"
-                    [value]="activeBreakdown()"
-                    (valueChange)="activeBreakdown.set($event)" />
-                @if (geo) {
-                    <!-- Top categories | the picked category's states | its venues in the picked
-                     state | the picked venue's ads -->
-                    <div class="dashboard__quarters">
-                        <div class="dashboard__half">
-                            <h3 class="dashboard__split-title">All categories received</h3>
-                            <app-share-list
-                                [items]="categoryBreakdownItems()"
-                                [total]="geo.received"
-                                unit="received"
-                                [limit]="topLimit"
-                                [selectable]="true"
-                                [selectedId]="selectedCategory()?.category ?? null"
-                                (selectItem)="selectedCategoryId.set($event)"
-                                [emptyText]="
-                                    categorySearch()
-                                        ? 'No categories match your search.'
-                                        : 'No categories received in this range.'
-                                " />
-                            @if (geo.withoutVenue > 0) {
-                                <p class="dashboard__footnote">
-                                    {{ geo.withoutVenue | number }} received had no venue, so no
-                                    category.
-                                </p>
-                            }
-                        </div>
+            <div class="dashboard-tile">
+                <span class="dashboard-tile__label">
+                    <i class="fa-sharp fa-regular fa-cloud-arrow-up" aria-hidden="true"></i>
+                    Uploads this week
+                </span>
+                <span class="dashboard-tile__value">{{ dash.totals.uploadsThisWeek }}</span>
+                <span class="dashboard-tile__note">
+                    @if (weekDelta(); as delta) {
+                        <i
+                            class="fa-sharp fa-regular"
+                            [class.fa-arrow-up]="delta > 0"
+                            [class.fa-arrow-down]="delta < 0"
+                            aria-hidden="true"></i>
+                        {{ delta > 0 ? '+' : '' }}{{ delta }} vs last week ({{
+                            dash.totals.uploadsLastWeek
+                        }})
+                    } @else {
+                        Same as last week ({{ dash.totals.uploadsLastWeek }})
+                    }
+                </span>
+            </div>
 
-                        @if (selectedCategory(); as category) {
-                            <section class="dashboard__quarter-split">
-                                <h3 class="dashboard__split-title">
-                                    States in
-                                    <span class="dashboard__split-name">{{
-                                        categoryName(category.category)
-                                    }}</span>
-                                </h3>
-                                <app-share-list
-                                    [items]="categoryStateItems()"
-                                    [total]="category.totalAds"
-                                    unit="received"
-                                    [limit]="topLimit"
-                                    [selectable]="true"
-                                    [selectedId]="selectedCategoryState()?.id ?? null"
-                                    (selectItem)="selectedCategoryStateId.set($event)"
-                                    emptyText="No states for this category." />
-                            </section>
+            <a class="dashboard-tile" routerLink="/channel">
+                <span class="dashboard-tile__label">
+                    <i class="fa-sharp fa-regular fa-hourglass-half" aria-hidden="true"></i>
+                    Waiting
+                </span>
+                <span class="dashboard-tile__value">{{ dash.totals.waiting }}</span>
+                <span class="dashboard-tile__note">In Review or Approval</span>
+            </a>
 
-                            @if (selectedCategoryState(); as state) {
-                                <section class="dashboard__quarter-split">
-                                    <h3 class="dashboard__split-title">
-                                        Venues in
-                                        <span class="dashboard__split-name">{{ state.name }}</span>
-                                    </h3>
-                                    <app-share-list
-                                        [items]="categoryStateVenueItems()"
-                                        [total]="state.value"
-                                        unit="received"
-                                        [limit]="topLimit"
-                                        [selectable]="true"
-                                        [selectedId]="selectedCategoryVenue()?.id ?? null"
-                                        (selectItem)="selectedCategoryVenueId.set($event)"
-                                        emptyText="No venues for this category here." />
-                                </section>
+            <div class="dashboard-tile">
+                <span class="dashboard-tile__label">
+                    <i class="fa-sharp fa-regular fa-signal-stream" aria-hidden="true"></i>
+                    Live
+                </span>
+                <span class="dashboard-tile__value">{{ dash.totals.live }}</span>
+                <span class="dashboard-tile__note">On the dashboard now</span>
+            </div>
 
-                                @if (selectedCategoryVenue(); as venue) {
-                                    <section class="dashboard__quarter-split">
-                                        <h3 class="dashboard__split-title">
-                                            Ads in
+            <div class="dashboard-tile">
+                <span class="dashboard-tile__label">
+                    <i class="fa-sharp fa-regular fa-comments" aria-hidden="true"></i>
+                    Open comments
+                </span>
+                <span class="dashboard-tile__value">{{ dash.totals.openThreads }}</span>
+                <span class="dashboard-tile__note">Threads not resolved</span>
+            </div>
+        </div>
+
+        <div class="dashboard__grid">
+            <!-- Workflow: each category's assets per status -->
+            <app-summary-card class="dashboard__wide" title="Workflow" icon="diagram-next">
+                <div class="workflow">
+                    @for (category of dash.workflow; track category.categoryId) {
+                        <section class="workflow__category">
+                            <header class="workflow__head">
+                                <a class="workflow__name" [routerLink]="'/' + category.categoryId">
+                                    {{ category.label }}
+                                </a>
+                                <span class="workflow__total">{{ category.total }} assets</span>
+                            </header>
+                            <ol class="workflow__stages">
+                                @for (status of statuses; track status.value) {
+                                    @let count = category.counts[status.value];
+                                    <li class="workflow__stage">
+                                        <app-status-badge [status]="status.value" />
+                                        <span class="workflow__count">{{ count }}</span>
+                                        <span
+                                            class="workflow__meter"
+                                            role="img"
+                                            [attr.aria-label]="
+                                                share(count, category.total) +
+                                                '% of ' +
+                                                category.label
+                                            ">
                                             <span
-                                                class="dashboard__split-name"
-                                                [title]="venue.name"
-                                                >{{ venue.name }}</span
-                                            >
-                                        </h3>
-                                        @if (adsData) {
-                                            <app-share-list
-                                                [items]="categoryVenueAdItems()"
-                                                [total]="venue.value"
-                                                unit="received"
-                                                [limit]="topLimit"
-                                                [showThumbnails]="true"
-                                                emptyText="No ads for this venue." />
-                                        } @else if (adsSection.hasError()) {
-                                            <app-section-error
-                                                message="Failed to load the ads."
-                                                (retry)="adsSection.reload()" />
-                                        } @else {
-                                            <ntv-skeleton
-                                                variant="custom"
-                                                width="100%"
-                                                height="200px" />
-                                        }
-                                    </section>
+                                                class="workflow__meter-fill"
+                                                [style.width.%]="
+                                                    share(count, category.total)
+                                                "></span>
+                                        </span>
+                                        <span class="workflow__share">
+                                            {{ share(count, category.total) }}%
+                                        </span>
+                                    </li>
                                 }
-                            }
+                            </ol>
+                        </section>
+                    }
+                </div>
+            </app-summary-card>
+
+            <!-- Waiting longest -->
+            <app-summary-card title="Waiting longest" icon="hourglass-half">
+                @if (dash.waitingLongest.length) {
+                    <ol class="dashboard-list">
+                        @for (asset of dash.waitingLongest; track asset.id) {
+                            <li class="dashboard-list__item">
+                                <div class="dashboard-list__main">
+                                    <a
+                                        class="dashboard-list__title"
+                                        [routerLink]="['/asset', asset.id]"
+                                        target="_blank"
+                                        rel="noopener">
+                                        {{ asset.title }}
+                                    </a>
+                                    <span class="dashboard-list__meta">{{ asset.location }}</span>
+                                </div>
+                                <div class="dashboard-list__side">
+                                    <app-status-badge [status]="asset.status" />
+                                    <span class="dashboard-list__meta">
+                                        {{ waitingFor(asset.since) }}
+                                    </span>
+                                </div>
+                            </li>
                         }
-                    </div>
-                } @else if (geography.hasError()) {
-                    <app-section-error
-                        message="Failed to load the categories."
-                        (retry)="geography.reload()" />
+                    </ol>
                 } @else {
-                    <ntv-skeleton variant="custom" width="100%" height="320px" />
+                    <p class="dashboard__empty">Nothing waiting. Every asset has moved on.</p>
                 }
             </app-summary-card>
-        }
 
-        @if (activeBreakdown() === 'states') {
-            <app-summary-card
-                id="dashboard-states"
-                title="States"
-                icon="map-location-dot"
-                hint="Pick a state to see its ads, then an ad to see its venues."
-                [class.dashboard__loading]="geography.isLoading() && geo">
-                <app-search-field
-                    card-tools
-                    placeholder="Search states, e.g. Texas or TX"
-                    [value]="stateSearch()"
-                    (valueChange)="stateSearch.set($event)" />
-                <app-sort-control
-                    card-tools
-                    class="dashboard__ad-sort"
-                    label="Sort states"
-                    [options]="stateSortOptions"
-                    [value]="stateSort()"
-                    (valueChange)="stateSort.set($event)"
-                    [direction]="stateSortDirection()"
-                    (directionChange)="stateSortDirection.set($event)" />
-                <app-sort-control
-                    card-action
-                    class="dashboard__breakdown-switcher"
-                    label="Show breakdown"
-                    icon="arrow-right-arrow-left"
-                    [options]="breakdownViewOptions"
-                    [value]="activeBreakdown()"
-                    (valueChange)="activeBreakdown.set($event)" />
-                @if (geo) {
-                    <!-- Top states | the picked state's ads | the picked ad's venues there -->
-                    <div class="dashboard__thirds dashboard__thirds--states">
-                        <div class="dashboard__half">
-                            <h3 class="dashboard__split-title">All states received</h3>
-                            <app-share-list
-                                [items]="stateItems()"
-                                [total]="geo.received"
-                                unit="received"
-                                [limit]="topLimit"
-                                [selectable]="true"
-                                [selectedId]="selectedState()?.state ?? null"
-                                (selectItem)="selectedStateId.set($event)"
-                                [emptyText]="
-                                    stateSearch()
-                                        ? 'No states match your search.'
-                                        : 'No states received in this range.'
-                                " />
-                            @if (geo.withoutVenue > 0) {
-                                <p class="dashboard__footnote">
-                                    {{ geo.withoutVenue | number }} received had no venue, so no
-                                    state.
-                                </p>
-                            }
-                        </div>
-
-                        @if (selectedState(); as state) {
-                            <section class="dashboard__split">
-                                <h3 class="dashboard__split-title">
-                                    Ads in
-                                    <span class="dashboard__split-name">{{
-                                        stateName(state.state)
-                                    }}</span>
-                                </h3>
-                                @if (adsData) {
-                                    <app-share-list
-                                        [items]="stateAdItems()"
-                                        [total]="state.totalAds"
-                                        unit="received"
-                                        [limit]="topLimit"
-                                        [showThumbnails]="true"
-                                        [selectable]="true"
-                                        [selectedId]="selectedStateAdRowId()"
-                                        (selectItem)="selectedStateAdId.set($event)"
-                                        emptyText="No ads for this state." />
-                                } @else if (adsSection.hasError()) {
-                                    <app-section-error
-                                        message="Failed to load the ads."
-                                        (retry)="adsSection.reload()" />
-                                } @else {
-                                    <ntv-skeleton variant="custom" width="100%" height="200px" />
-                                }
-                            </section>
-
-                            @if (selectedStateAd(); as ad) {
-                                <section class="dashboard__split">
-                                    <h3 class="dashboard__split-title">
-                                        Venues for
-                                        <span class="dashboard__split-name" [title]="ad.title">{{
-                                            shortTitle(ad.title)
-                                        }}</span>
-                                    </h3>
-                                    <app-share-list
-                                        [items]="stateAdVenueItems()"
-                                        [total]="ad.received"
-                                        unit="received"
-                                        [limit]="topLimit"
-                                        emptyText="No venues received this ad here." />
-                                </section>
-                            }
-                        }
+            <!-- Uploads per week -->
+            <app-summary-card class="dashboard__wide" title="Uploads per week" icon="chart-column">
+                <p class="weeks__summary">
+                    <strong>{{ weeksTotal() }}</strong> uploads in the last
+                    {{ weekColumns().length }} weeks
+                </p>
+                <div class="weeks" aria-hidden="true">
+                    <div class="weeks__axis">
+                        <span>{{ weekScaleMax() }}</span>
+                        <span>{{ weekScaleMax() / 2 }}</span>
+                        <span>0</span>
                     </div>
-                } @else if (geography.hasError()) {
-                    <app-section-error
-                        message="Failed to load the states."
-                        (retry)="geography.reload()" />
-                } @else {
-                    <ntv-skeleton variant="custom" width="100%" height="320px" />
-                }
-            </app-summary-card>
-        }
-
-        @if (activeBreakdown() === 'ads') {
-            <app-summary-card
-                id="dashboard-ads"
-                title="Ads"
-                icon="rectangle-ad"
-                hint="Pick an ad to see its states, then a state to see its venues."
-                [class.dashboard__loading]="adsSection.isLoading() && adsData">
-                <app-search-field
-                    card-tools
-                    placeholder="Search file name or creative ID"
-                    [value]="adSearch()"
-                    (valueChange)="adSearch.set($event)" />
-                <app-sort-control
-                    card-tools
-                    class="dashboard__ad-sort"
-                    label="Sort ads"
-                    [options]="adSortOptions"
-                    [value]="adSort()"
-                    (valueChange)="adSort.set($event)"
-                    [direction]="adSortDirection()"
-                    (directionChange)="adSortDirection.set($event)" />
-                <app-sort-control
-                    card-action
-                    class="dashboard__breakdown-switcher"
-                    label="Show breakdown"
-                    icon="arrow-right-arrow-left"
-                    [options]="breakdownViewOptions"
-                    [value]="activeBreakdown()"
-                    (valueChange)="activeBreakdown.set($event)" />
-                @if (adsData) {
-                    <!-- Top ads | the picked ad's states | its venues in the picked state -->
-                    <div class="dashboard__thirds">
-                        <div class="dashboard__half">
-                            <h3 class="dashboard__split-title">All unique ads received</h3>
-                            <app-share-list
-                                [items]="adItems()"
-                                [total]="adsData.received"
-                                unit="received"
-                                [limit]="topLimit"
-                                [showThumbnails]="true"
-                                [selectable]="true"
-                                [selectedId]="selectedAdRowId()"
-                                (selectItem)="selectedAdId.set($event)"
-                                [emptyText]="
-                                    adSearch()
-                                        ? 'No ads match your search.'
-                                        : 'No ads received in this range.'
-                                " />
-                        </div>
-
-                        @if (selectedAd(); as ad) {
-                            <section class="dashboard__split">
-                                <h3 class="dashboard__split-title">
-                                    States for
-                                    <span class="dashboard__split-name" [title]="ad.title">{{
-                                        shortTitle(ad.title)
-                                    }}</span>
-                                </h3>
-                                @if (geo) {
-                                    <app-share-list
-                                        [items]="adStateItems()"
-                                        [total]="ad.received"
-                                        unit="received"
-                                        [limit]="topLimit"
-                                        [selectable]="true"
-                                        [selectedId]="selectedAdState()?.state ?? null"
-                                        (selectItem)="selectedAdStateId.set($event)"
-                                        emptyText="No states for this ad." />
-                                } @else if (geography.hasError()) {
-                                    <app-section-error
-                                        message="Failed to load the states."
-                                        (retry)="geography.reload()" />
-                                } @else {
-                                    <ntv-skeleton variant="custom" width="100%" height="200px" />
-                                }
-                            </section>
-
-                            @if (selectedAdState(); as slice) {
-                                <section class="dashboard__split">
-                                    <h3 class="dashboard__split-title">
-                                        Venues in
-                                        <span class="dashboard__split-name">{{
-                                            stateName(slice.state)
-                                        }}</span>
-                                    </h3>
-                                    <app-share-list
-                                        [items]="adStateVenueItems()"
-                                        [total]="ad.received"
-                                        unit="received"
-                                        [limit]="topLimit"
-                                        [emptyText]="
-                                            slice.state === 'No venue'
-                                                ? 'These were received with no venue.'
-                                                : 'No venues received this ad here.'
-                                        " />
-                                </section>
-                            }
-                        }
-                    </div>
-                } @else if (adsSection.hasError()) {
-                    <app-section-error
-                        message="Failed to load the ads."
-                        (retry)="adsSection.reload()" />
-                } @else {
-                    <ntv-skeleton variant="custom" width="100%" height="320px" />
-                }
-            </app-summary-card>
-        }
-
-        @if (activeBreakdown() === 'venues') {
-            <app-summary-card
-                id="dashboard-venues"
-                title="Venues"
-                icon="store"
-                hint="Pick a venue to see its ads, then an ad to see its playlist slots there."
-                [class.dashboard__loading]="geography.isLoading() && geo">
-                <app-search-field
-                    card-tools
-                    placeholder="Search venue ID or name"
-                    [value]="venueSearch()"
-                    (valueChange)="venueSearch.set($event)" />
-                <app-sort-control
-                    card-tools
-                    class="dashboard__ad-sort"
-                    label="Sort venues"
-                    [options]="venueSortOptions"
-                    [value]="venueSort()"
-                    (valueChange)="venueSort.set($event)"
-                    [direction]="venueSortDirection()"
-                    (directionChange)="venueSortDirection.set($event)" />
-                <app-sort-control
-                    card-action
-                    class="dashboard__breakdown-switcher"
-                    label="Show breakdown"
-                    icon="arrow-right-arrow-left"
-                    [options]="breakdownViewOptions"
-                    [value]="activeBreakdown()"
-                    (valueChange)="activeBreakdown.set($event)" />
-                @if (geo) {
-                    <!-- Venues | the picked venue's ads | the picked ad's playlist slots there (25 / 25 / 50) -->
-                    <div class="dashboard__thirds dashboard__thirds--venues">
-                        <div class="dashboard__half">
-                            <h3 class="dashboard__split-title">All venues received</h3>
-                            <app-share-list
-                                [items]="slotVenueItems()"
-                                [total]="geo.received"
-                                unit="received"
-                                [limit]="topLimit"
-                                [selectable]="true"
-                                [selectedId]="slotVenue()?.venueId ?? null"
-                                (selectItem)="slotVenueId.set($event)"
-                                [emptyText]="
-                                    venueSearch()
-                                        ? 'No venues match your search.'
-                                        : 'No venues received in this range.'
-                                " />
-                            @if (geo.withoutVenue > 0) {
-                                <p class="dashboard__footnote">
-                                    {{ geo.withoutVenue | number }} received had no venue.
-                                </p>
-                            }
-                        </div>
-
-                        @if (slotVenue(); as venue) {
-                            <section class="dashboard__split">
-                                <h3 class="dashboard__split-title">
-                                    Ads in
-                                    <span
-                                        class="dashboard__split-name"
-                                        [title]="venue.hostName ?? venue.venueId"
-                                        >{{ venue.hostName ?? venue.venueId }}</span
-                                    >
-                                </h3>
-                                @if (adsData) {
-                                    <app-share-list
-                                        [items]="slotVenueAdItems()"
-                                        [total]="venue.totalAds"
-                                        unit="received"
-                                        [limit]="topLimit"
-                                        [showThumbnails]="true"
-                                        [selectable]="true"
-                                        [selectedId]="slotAdRowId()"
-                                        (selectItem)="slotAdId.set($event)"
-                                        emptyText="No ads for this venue." />
-                                } @else if (adsSection.hasError()) {
-                                    <app-section-error
-                                        message="Failed to load the ads."
-                                        (retry)="adsSection.reload()" />
-                                } @else {
-                                    <ntv-skeleton variant="custom" width="100%" height="200px" />
-                                }
-                            </section>
-
-                            @if (slotAd(); as ad) {
-                                <section class="dashboard__split">
-                                    <h3 class="dashboard__split-title">
-                                        Playlist slots for
-                                        <span class="dashboard__split-name" [title]="ad.title">{{
-                                            shortTitle(ad.title)
-                                        }}</span>
-                                        <app-slot-stat [slots]="venueSlots()" />
-                                    </h3>
-                                    @if (!ad.contentId) {
-                                        <p class="dashboard__footnote">
-                                            This ad has no media file, so its playlist slots can't
-                                            be looked up.
-                                        </p>
-                                    } @else if (hasSlotsError()) {
-                                        <app-section-error
-                                            message="Failed to load the playlist slots."
-                                            (retry)="reloadSlots()" />
-                                    } @else if (isLoadingSlots()) {
-                                        <ntv-skeleton
-                                            variant="custom"
-                                            width="100%"
-                                            height="200px" />
-                                    } @else {
-                                        <app-slot-grid
-                                            [slots]="venueSlots()"
-                                            emptyText="No plays of this ad found at this venue." />
+                    <div class="weeks__plot">
+                        <span class="weeks__grid weeks__grid--top"></span>
+                        <span class="weeks__grid weeks__grid--mid"></span>
+                        @for (week of weekColumns(); track week.weekStart) {
+                            <div
+                                class="weeks__column"
+                                [class.weeks__column--current]="week.isCurrent">
+                                <div class="weeks__slot">
+                                    @if (week.count) {
+                                        <span
+                                            class="weeks__bar"
+                                            [style.height.%]="week.percent"></span>
                                     }
-                                </section>
-                            }
+                                    <span class="weeks__tooltip">
+                                        <strong>{{ week.count }}</strong>
+                                        upload{{ week.count === 1 ? '' : 's' }}
+                                        <span>
+                                            {{
+                                                week.isCurrent
+                                                    ? 'This week'
+                                                    : 'Week of ' + shortDate(week.weekStart)
+                                            }}
+                                        </span>
+                                    </span>
+                                </div>
+                                <span class="weeks__label">{{ week.axisLabel }}</span>
+                            </div>
                         }
                     </div>
-                } @else if (geography.hasError()) {
-                    <app-section-error
-                        message="Failed to load the venues."
-                        (retry)="geography.reload()" />
+                </div>
+                <!-- The chart's numbers for screen readers -->
+                <table class="sr-only">
+                    <caption>
+                        Uploads per week
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Week of</th>
+                            <th scope="col">Uploads</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (week of weekColumns(); track week.weekStart) {
+                            <tr>
+                                <td>{{ shortDate(week.weekStart) }}</td>
+                                <td>{{ week.count }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </app-summary-card>
+
+            <!-- What the library holds -->
+            <app-summary-card title="Library" icon="layer-group" route="/mini-library">
+                <h3 class="dashboard__subheading">By category</h3>
+                <ng-container
+                    *ngTemplateOutlet="
+                        barList;
+                        context: { $implicit: categoryBars(), name: 'Assets by category' }
+                    " />
+                <h3 class="dashboard__subheading">By file type</h3>
+                <ng-container
+                    *ngTemplateOutlet="
+                        barList;
+                        context: { $implicit: fileTypeBars(), name: 'Assets by file type' }
+                    " />
+            </app-summary-card>
+
+            <!-- Latest uploads -->
+            <app-summary-card title="Latest uploads" icon="clock-rotate-left">
+                @if (dash.recentUploads.length) {
+                    <ol class="dashboard-list">
+                        @for (asset of dash.recentUploads; track asset.id) {
+                            <li class="dashboard-list__item dashboard-list__item--media">
+                                <span class="dashboard-list__thumb">
+                                    @if (asset.fileType === 'mp4') {
+                                        <video
+                                            [src]="asset.fileUrl + '#t=0.5'"
+                                            muted
+                                            playsinline
+                                            preload="metadata"
+                                            aria-hidden="true"
+                                            tabindex="-1"></video>
+                                    } @else {
+                                        <img [src]="asset.thumbnailUrl" alt="" loading="lazy" />
+                                    }
+                                </span>
+                                <div class="dashboard-list__main">
+                                    <a
+                                        class="dashboard-list__title"
+                                        [routerLink]="['/asset', asset.id]"
+                                        target="_blank"
+                                        rel="noopener">
+                                        {{ asset.title }}
+                                    </a>
+                                    <span class="dashboard-list__meta">
+                                        {{ asset.location }} ·
+                                        {{ asset.createdAt | date: 'MMM d, h:mm a' }}
+                                        @if (asset.createdBy) {
+                                            · {{ nameOf(asset.createdBy) }}
+                                        }
+                                    </span>
+                                </div>
+                            </li>
+                        }
+                    </ol>
                 } @else {
-                    <ntv-skeleton variant="custom" width="100%" height="320px" />
+                    <p class="dashboard__empty">No uploads yet.</p>
                 }
             </app-summary-card>
-        }
-    </div>
+
+            <!-- Latest comments -->
+            <app-summary-card title="Latest comments" icon="comments">
+                @if (dash.recentComments.length) {
+                    <ol class="dashboard-list">
+                        @for (comment of dash.recentComments; track comment.id) {
+                            <li class="dashboard-list__item">
+                                <div class="dashboard-list__main">
+                                    <span class="dashboard-list__meta">
+                                        <strong class="dashboard-list__who">
+                                            {{ nameOf(comment.author) }}
+                                        </strong>
+                                        {{ comment.isReply ? 'replied on' : 'on' }}
+                                        <a
+                                            class="dashboard-list__inline-link"
+                                            [routerLink]="['/asset', comment.assetId]"
+                                            target="_blank"
+                                            rel="noopener">
+                                            {{ comment.assetTitle }}
+                                        </a>
+                                    </span>
+                                    <span class="dashboard-list__quote">{{ comment.body }}</span>
+                                    <span class="dashboard-list__meta">
+                                        {{ comment.createdAt | date: 'MMM d, h:mm a' }}
+                                    </span>
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                } @else {
+                    <p class="dashboard__empty">No comments yet.</p>
+                }
+            </app-summary-card>
+
+            <!-- Top uploaders -->
+            <app-summary-card title="Top uploaders" icon="ranking-star" hint="Last 30 days">
+                @if (contributorBars().length) {
+                    <ng-container
+                        *ngTemplateOutlet="
+                            barList;
+                            context: {
+                                $implicit: contributorBars(),
+                                name: 'Uploads per person, last 30 days',
+                            }
+                        " />
+                } @else {
+                    <p class="dashboard__empty">No uploads in the last 30 days.</p>
+                }
+            </app-summary-card>
+        </div>
+    }
 </div>
 
-<!-- Venues in an "Unknown" bucket (no state / category in the Hosts API), for the tech team -->
-<app-dialog
-    [title]="
-        unknownDialog() === 'category'
-            ? 'Venues with no known category'
-            : 'Venues with no known state'
-    "
-    [visible]="unknownDialog() !== null"
-    width="820px"
-    cancelLabel="Close"
-    [actionLabel]="unknownIdsCopied() ? 'Copied' : 'Copy venue IDs'"
-    [actionIcon]="unknownIdsCopied() ? 'check' : 'copy'"
-    [actionDisabled]="unknownVenues().length === 0"
-    (closed)="unknownDialog.set(null)"
-    (action)="copyUnknownVenueIds()">
-    <p class="dashboard__unknown-intro">
-        {{ unknownVenues().length | number }}
-        {{ unknownVenues().length === 1 ? 'venue' : 'venues' }} received playables in this range but
-        {{ unknownVenues().length === 1 ? 'has' : 'have' }} no
-        {{ unknownDialog() === 'category' ? 'category' : 'state' }} in the Hosts API. Fix them there
-        and they'll be counted on the next load.
-    </p>
-    <div class="dashboard__unknown-scroll">
-        <table class="dashboard__unknown-table">
-            <thead>
-                <tr>
-                    <th>Venue ID</th>
-                    <th>Name</th>
-                    <th>City</th>
-                    <th>State</th>
-                    <th>Category</th>
-                    <th class="dashboard__unknown-num">Received</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (venue of unknownVenues(); track venue.venueId) {
-                    <tr>
-                        <td>
-                            <span class="dashboard__unknown-id">
-                                {{ venue.venueId }}
-                                <app-copy-button [value]="venue.venueId" />
-                            </span>
-                        </td>
-                        <td>
-                            @if (venue.hostName) {
-                                {{ venue.hostName }}
-                            } @else {
-                                <span class="dashboard__unknown-missing">Not in Hosts API</span>
-                            }
-                        </td>
-                        <td>{{ venue.city ?? '—' }}</td>
-                        <td>{{ venue.state ?? '—' }}</td>
-                        <td>{{ venue.category ?? '—' }}</td>
-                        <td class="dashboard__unknown-num">{{ venue.totalAds | number }}</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</app-dialog>
+<!-- A ranked bar list: label, bar (one hue, length = value), value -->
+<ng-template #barList let-bars let-name="name">
+    <ul class="bars" [attr.aria-label]="name">
+        @for (bar of bars; track bar.label) {
+            <li class="bars__row" [title]="bar.label + ': ' + bar.value">
+                <span class="bars__label">{{ bar.label }}</span>
+                <span class="bars__track" aria-hidden="true">
+                    @if (bar.value) {
+                        <span class="bars__fill" [style.width.%]="bar.percent"></span>
+                    }
+                </span>
+                <span class="bars__value">{{ bar.value }}</span>
+            </li>
+        }
+    </ul>
+</ng-template>

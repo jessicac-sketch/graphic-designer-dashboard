@@ -1,8 +1,9 @@
 /** Angular Imports */
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 /** Local Imports */
+import { AuthService } from '@core/services/auth';
 import { BrandComponent } from '@shared/components/brand';
 import { APP_CAPTION, APP_VERSION } from '@shared/models/app';
 import { MAIN_NAV_ITEMS } from '@shared/models/navigation';
@@ -41,10 +42,21 @@ export class SidebarComponent {
     public readonly collapsed = input(false);
 
     /**
-     * Primary navigation items
-     * @type {readonly NavItem[]}
+     * The signed-in user (some items are for certain roles only)
+     * @type {AuthService}
      */
-    protected readonly navItems = MAIN_NAV_ITEMS;
+    private readonly authService = inject(AuthService);
+
+    /**
+     * Primary navigation items the signed-in user may see
+     * @type {Signal<readonly NavItem[]>}
+     */
+    protected readonly navItems = computed(() => {
+        const role = this.authService.role();
+        return MAIN_NAV_ITEMS.filter(
+            (item) => !item.roles || (!!role && item.roles.includes(role)),
+        );
+    });
 
     /**
      * App version shown in the footer

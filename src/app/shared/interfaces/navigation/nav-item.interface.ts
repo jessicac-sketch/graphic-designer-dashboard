@@ -1,3 +1,6 @@
+/** Local Imports */
+import type { UserRole } from '@shared/models/users/user-role.type';
+
 /**
  * A link in the app sidebar navigation.
  */
@@ -16,4 +19,7 @@ export interface NavItem {
 
     /** Optional short badge shown after the label (e.g. 'Beta') */
     badge?: string;
+
+    /** Only users with one of these roles see the item (everyone when omitted) */
+    roles?: readonly UserRole[];
 }

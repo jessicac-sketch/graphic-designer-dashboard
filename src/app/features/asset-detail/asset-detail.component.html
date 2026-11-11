@@ -91,10 +91,61 @@
                             <i class="fa-sharp fa-regular fa-file" aria-hidden="true"></i>
                             File
                         </h2>
-                        <p class="asset-detail__file-name">
-                            <span [title]="fileName()">{{ fileName() }}</span>
-                            <span class="asset-detail__version">v{{ item.version }}</span>
-                        </p>
+                        <!-- File name: shown, or renamed in place (the extension stays) -->
+                        @if (renaming()) {
+                            <form
+                                class="asset-detail__rename"
+                                (submit)="$event.preventDefault(); saveTitle()">
+                                <label class="asset-detail__label" for="asset-title">Name</label>
+                                <div class="asset-detail__rename-field">
+                                    <input
+                                        #titleInput
+                                        id="asset-title"
+                                        class="asset-detail__rename-input"
+                                        type="text"
+                                        maxlength="200"
+                                        autocomplete="off"
+                                        [formControl]="titleControl"
+                                        (keydown.escape)="renaming.set(false)" />
+                                    <span class="asset-detail__extension"
+                                        >.{{ item.fileType }}</span
+                                    >
+                                </div>
+                                <div class="asset-detail__description-actions">
+                                    <span class="asset-detail__hint">
+                                        The file's link stays the same.
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="asset-detail__link"
+                                        (click)="renaming.set(false)">
+                                        Cancel
+                                    </button>
+                                    <ntv-button
+                                        size="sm"
+                                        type="submit"
+                                        [shadow]="false"
+                                        [loading]="savingTitle()"
+                                        [disabled]="!titleControl.value.trim()">
+                                        Save
+                                    </ntv-button>
+                                </div>
+                            </form>
+                        } @else {
+                            <p class="asset-detail__file-name">
+                                <span [title]="fileName()">{{ fileName() }}</span>
+                                <span class="asset-detail__file-tools">
+                                    <button
+                                        type="button"
+                                        class="asset-detail__link"
+                                        data-testid="asset-rename"
+                                        (click)="startRename()">
+                                        Rename
+                                    </button>
+                                    <span class="asset-detail__version">v{{ item.version }}</span>
+                                </span>
+                            </p>
+                        }
 
                         <label class="asset-detail__label" for="shareable-link"
                             >Shareable link</label

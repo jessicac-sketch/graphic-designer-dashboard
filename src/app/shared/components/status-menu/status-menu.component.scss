@@ -5,7 +5,7 @@
 .status-menu {
     @apply flex items-center gap-2 border border-transparent p-1 transition-colors;
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled):not(&--readonly) {
         @apply border-surface-border bg-surface-hover;
     }
 
@@ -29,6 +29,11 @@
        component's scoped attribute, so the styles still apply) */
     &__panel {
         @apply flex flex-col border border-surface-border bg-surface-raised p-1.5 shadow-xl;
+    }
+
+    /* Not allowed for the user's role */
+    &__item:disabled {
+        @apply cursor-not-allowed opacity-40;
     }
 
     &__item {

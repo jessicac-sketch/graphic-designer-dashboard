@@ -18,7 +18,7 @@
             <span class="sidebar__label">Menu</span>
         }
 
-        @for (item of navItems; track item.route) {
+        @for (item of navItems(); track item.route) {
             <a
                 class="sidebar__link"
                 [routerLink]="item.route"
@@ -56,9 +56,7 @@
             <button
                 type="button"
                 class="sidebar__time-toggle-option"
-                [class.sidebar__time-toggle-option--active]="
-                    timeDisplayService.mode() === 'utc'
-                "
+                [class.sidebar__time-toggle-option--active]="timeDisplayService.mode() === 'utc'"
                 [attr.aria-pressed]="timeDisplayService.mode() === 'utc'"
                 title="Show dates and times in UTC"
                 (click)="timeDisplayService.setMode('utc')">

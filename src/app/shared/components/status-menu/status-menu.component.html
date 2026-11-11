@@ -1,24 +1,31 @@
-<button
-    #trigger
-    type="button"
-    class="status-menu"
-    aria-haspopup="menu"
-    [attr.aria-expanded]="isOpen()"
-    [attr.aria-label]="label()"
-    [disabled]="busy()"
-    (click)="menu.toggle($event, trigger)">
-    <app-status-badge [status]="status()" />
-    @if (busy()) {
-        <i
-            class="status-menu__chevron fa-sharp fa-regular fa-spinner-third fa-spin"
-            aria-hidden="true"></i>
-    } @else {
-        <i
-            class="status-menu__chevron fa-sharp fa-regular fa-chevron-down"
-            [class.status-menu__chevron--open]="isOpen()"
-            aria-hidden="true"></i>
-    }
-</button>
+@if (canChange() || busy()) {
+    <button
+        #trigger
+        type="button"
+        class="status-menu"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="isOpen()"
+        [attr.aria-label]="label()"
+        [disabled]="busy()"
+        (click)="menu.toggle($event, trigger)">
+        <app-status-badge [status]="status()" />
+        @if (busy()) {
+            <i
+                class="status-menu__chevron fa-sharp fa-regular fa-spinner-third fa-spin"
+                aria-hidden="true"></i>
+        } @else {
+            <i
+                class="status-menu__chevron fa-sharp fa-regular fa-chevron-down"
+                [class.status-menu__chevron--open]="isOpen()"
+                aria-hidden="true"></i>
+        }
+    </button>
+} @else {
+    <!-- The user's role can't move this asset from here: just the badge -->
+    <span class="status-menu status-menu--readonly" title="Your role can't change this status">
+        <app-status-badge [status]="status()" />
+    </span>
+}
 
 <ntv-popover
     #menu
@@ -29,13 +36,15 @@
     (shown)="isOpen.set(true)"
     (hidden)="isOpen.set(false)">
     <div class="status-menu__panel" role="menu" [attr.aria-label]="label()">
-        @for (entry of statuses; track entry.value) {
+        @for (entry of statuses(); track entry.value) {
             <button
                 type="button"
                 class="status-menu__item"
                 [class.status-menu__item--active]="entry.value === status()"
                 role="menuitemradio"
                 [attr.aria-checked]="entry.value === status()"
+                [disabled]="!entry.allowed"
+                [attr.title]="entry.allowed ? null : 'Your role can\'t make this change'"
                 (click)="select(entry.value)">
                 <app-status-badge [status]="entry.value" />
                 <span class="status-menu__description">{{ entry.description }}</span>

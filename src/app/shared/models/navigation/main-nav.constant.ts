@@ -9,4 +9,5 @@ export const MAIN_NAV_ITEMS: readonly NavItem[] = [
     { label: 'Mini-Library', icon: 'photo-film', route: '/mini-library' },
     { label: 'Channel', icon: 'tv', route: '/channel' },
     { label: 'Sponsorship', icon: 'handshake', route: '/sponsorship' },
+    { label: 'Users', icon: 'users', route: '/users', roles: ['admin'] },
 ];

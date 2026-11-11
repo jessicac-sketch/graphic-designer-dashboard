@@ -6,15 +6,16 @@ import { CanMatchFn, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 
 /**
- * Route guard that allows access only to authenticated users.
+ * Route guard that allows access only to authenticated users who don't have to change
+ * a temporary password.
  *
  * @param route - The activated route snapshot
  * @param segments - The URL segments
- * @returns {boolean} True if user is authenticated, otherwise redirects to login
+ * @returns {boolean} True if the user may use the app; otherwise redirects to /login, or to
+ * /change-password while their password is temporary
  *
  * @remarks
  * This is a functional guard (Angular 15+) used with `canMatch`.
- * Redirects unauthenticated users to /login.
  */
 export const authGuard: CanMatchFn = async (route, segments) => {
     /**
@@ -33,6 +34,11 @@ export const authGuard: CanMatchFn = async (route, segments) => {
 
     if (!isAuthenticated) {
         router.navigate(['/login']);
+        return false;
+    }
+
+    if (authService.user()?.mustChangePassword) {
+        router.navigate(['/change-password']);
         return false;
     }
 

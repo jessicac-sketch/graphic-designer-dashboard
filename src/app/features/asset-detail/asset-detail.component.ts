@@ -6,8 +6,10 @@ import {
     computed,
     DestroyRef,
     effect,
+    ElementRef,
     inject,
     signal,
+    viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -212,6 +214,30 @@ export class AssetDetailComponent {
     protected readonly savingStatus = signal(false);
 
     /**
+     * Whether the name is being edited
+     * @type {WritableSignal<boolean>}
+     */
+    protected readonly renaming = signal(false);
+
+    /**
+     * Name editor (the title, without the file extension)
+     * @type {FormControl<string>}
+     */
+    protected readonly titleControl = new FormControl('', { nonNullable: true });
+
+    /**
+     * Whether the new name is being saved
+     * @type {WritableSignal<boolean>}
+     */
+    protected readonly savingTitle = signal(false);
+
+    /**
+     * The name field, to select its text when it opens
+     * @type {Signal<ElementRef<HTMLInputElement> | undefined>}
+     */
+    private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+
+    /**
      * Whether the description is being edited
      * @type {WritableSignal<boolean>}
      */
@@ -357,6 +383,49 @@ export class AssetDetailComponent {
                 console.error('[AssetDetail] Failed to change the status:', error);
                 this.savingStatus.set(false);
                 this.actionError.set(apiErrorMessage(error, "Couldn't change the status."));
+            },
+        });
+    }
+
+    /**
+     * Opens the rename field with the current name, selected.
+     *
+     * @returns {void}
+     */
+    protected startRename(): void {
+        this.titleControl.setValue(this.asset()?.title ?? '');
+        this.renaming.set(true);
+        // Once the field is rendered
+        setTimeout(() => this.titleInput()?.nativeElement.select());
+    }
+
+    /**
+     * Saves the new name (the browser tab and header follow).
+     *
+     * @returns {void}
+     */
+    protected saveTitle(): void {
+        const asset = this.asset();
+        const title = this.titleControl.value.trim();
+        if (!asset || !title || this.savingTitle()) {
+            return;
+        }
+        if (title === asset.title) {
+            this.renaming.set(false);
+            return;
+        }
+        this.savingTitle.set(true);
+        this.actionError.set(null);
+        this.libraryService.renameAsset(asset.id, title).subscribe({
+            next: (updated) => {
+                this.savingTitle.set(false);
+                this.renaming.set(false);
+                this.asset.set(updated);
+            },
+            error: (error: unknown) => {
+                console.error('[AssetDetail] Failed to rename the asset:', error);
+                this.savingTitle.set(false);
+                this.actionError.set(apiErrorMessage(error, "Couldn't rename the asset."));
             },
         });
     }

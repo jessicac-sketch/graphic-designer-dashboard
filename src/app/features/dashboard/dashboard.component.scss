@@ -1,255 +1,341 @@
-/* One 12px gap between every card on the page - the stat tiles' spacing - both
-   between sections and inside the overview / breakdown rows.
-
-   Layouts follow the width the page content actually has (container queries on
-   `dashboard`), not the browser window: the content area is the window minus the 256px
-   sidebar and the padding, so a 1024px tablet only has ~720px, a 1280px laptop ~975px. */
+/* Layout follows the content area's own width (sidebar excluded) - see
+   docs/STANDARDS.md (Responsive card layouts). Every chart mark is the one brand hue:
+   bars show magnitude, labels carry identity. */
 .dashboard {
-    @apply flex w-full flex-col gap-3;
     container: dashboard / inline-size;
 
-    /* Tiles by content width: 2 columns (Received on top, spanning both), then 4 columns
-       (Received spanning the row, the four uniques in one row below it), then - when
-       there is room - Received beside them, as wide as its content up to 40% of the row */
-    &__metrics {
-        @apply grid grid-cols-2 gap-3;
-
-        @container dashboard (min-width: 48rem) {
-            @apply grid-cols-4;
-        }
-
-        @container dashboard (min-width: 72rem) {
-            @apply grid-cols-[fit-content(40%)_repeat(4,minmax(0,1fr))];
-        }
+    &__header-actions {
+        @apply flex items-center gap-3;
     }
 
-    /* Room for 5-digit days (e.g. "54,361" with three 5-digit buckets) reserved when it
-       sits beside the tiles, so it doesn't jump wider when the numbers grow */
-    &__received {
-        @apply col-span-2;
-
-        @container dashboard (min-width: 48rem) {
-            @apply col-span-4;
-        }
-
-        @container dashboard (min-width: 72rem) {
-            @apply col-span-1 min-w-[27rem];
-        }
-    }
-
-    /* POP buckets on the Received tile's right */
-    &__pop {
-        @apply flex flex-col gap-1.5;
-    }
-
-    &__pop-label {
-        @apply text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
-    }
-
-    &__pop-buckets {
-        @apply flex flex-wrap gap-x-5 gap-y-2;
-    }
-
-    &__pop-bucket {
-        @apply flex flex-col;
-    }
-
-    /* Fixed room for a 5-digit count ("99,999"), so buckets don't shift as numbers grow */
-    &__pop-count {
-        @apply flex min-w-[4.75rem] items-center gap-1.5 whitespace-nowrap text-base font-bold tabular-nums text-content-primary;
-    }
-
-    &__pop-swatch {
-        @apply h-2 w-2 shrink-0 bg-content-muted;
-
-        &--green {
-            @apply bg-status-good;
-        }
-
-        &--yellow {
-            @apply bg-status-warn;
-        }
-
-        &--red {
-            @apply bg-status-crit;
-        }
-    }
-
-    &__pop-range {
-        @apply whitespace-nowrap text-label text-content-muted;
-    }
-
-    &__skeleton {
-        @apply block;
-    }
-
-    /* Received timeline 50% / last 7 days 50% when there is room; stacked otherwise */
-    &__overview {
-        @apply grid grid-cols-1 gap-3;
-
-        @container dashboard (min-width: 60rem) {
-            @apply grid-cols-2;
-        }
-    }
-
-    /* "200 / 1,200": unique ads in the range / of all time, at the right of the card title */
-    &__total {
-        @apply flex items-baseline gap-2;
-    }
-
-    &__total-value {
-        @apply text-lg font-bold tabular-nums text-content-primary;
-    }
-
-    &__total-label {
+    &__updated {
         @apply text-xs text-content-muted;
     }
 
-    /* Fills the card's body, so the chart matches the categories card's height */
-    &__chart {
-        @apply min-h-[320px] flex-1;
+    &__refresh {
+        @apply flex items-center gap-2 border border-surface-border px-3 py-1.5 text-sm text-content-secondary transition-colors;
+
+        &:hover:not(:disabled) {
+            @apply border-content-muted text-content-primary;
+        }
+
+        &:disabled {
+            @apply cursor-not-allowed opacity-60;
+        }
     }
 
-    /* Switches which of the Categories/States/Ads cards below is shown - compact and
-       left-aligned, same width family as the in-card sort controls (&__ad-sort), not a
-       full-width bar. */
-    &__breakdown-switcher {
-        @apply w-72 max-w-full;
+    /* Headline numbers: 2 columns on a phone, 3, then all 5 in a row */
+    &__tiles {
+        @apply mb-4 grid grid-cols-2 gap-3;
+
+        @container dashboard (min-width: 40rem) {
+            @apply grid-cols-3;
+        }
+
+        @container dashboard (min-width: 72rem) {
+            @apply grid-cols-5;
+        }
     }
 
-    /* Only one of Categories/States/Ads renders at a time (switched above), full width */
-    &__breakdowns {
-        @apply flex flex-col gap-3;
-    }
-
-    /* Previous numbers stay visible, dimmed, while a new range loads */
-    &__loading {
-        @apply pointer-events-none opacity-50 transition-opacity;
-    }
-
-    /* A card split in two: the list (left) and the picked row's breakdown (right);
-       stacked, with a rule between, on smaller screens */
-    &__halves {
-        @apply grid grid-cols-1 gap-5;
+    /* Panels: 1 column, 2 from 48rem, 3 from 72rem (wide panels take 2) */
+    &__grid {
+        @apply grid grid-cols-1 items-start gap-4;
 
         @container dashboard (min-width: 48rem) {
-            @apply grid-cols-2 gap-6;
+            @apply grid-cols-2;
         }
-    }
-
-    /* Ads / States sort control beside the card title */
-    &__ad-sort {
-        @apply w-72 max-w-full;
-    }
-
-    /* Ads card, 40 / 30 / 30: ads → the picked ad's states → venues that played it there */
-    &__thirds {
-        @apply grid grid-cols-1 gap-5;
-
-        /* Three columns only when each has ~300px; narrower (tablets), the three
-           stack, each at full width */
-        @container dashboard (min-width: 60rem) {
-            @apply grid-cols-[minmax(0,4fr)_minmax(0,3fr)_minmax(0,3fr)] gap-6;
-        }
-    }
-
-    /* States card, 30 / 40 / 30: states → the picked state's ads (thumbnails, so wider) →
-       venues */
-    &__thirds--states {
-        @container dashboard (min-width: 60rem) {
-            @apply grid-cols-[minmax(0,3fr)_minmax(0,4fr)_minmax(0,3fr)];
-        }
-    }
-
-    /* Venue breakdown, 30 / 30 / 40: venues → the picked venue's ads → the picked ad's
-       playlist slots (a grid of cards, so the widest) */
-    &__thirds--venues {
-        @container dashboard (min-width: 60rem) {
-            @apply grid-cols-[minmax(0,30fr)_minmax(0,30fr)_minmax(0,40fr)];
-        }
-    }
-
-    /* Categories card: categories 25% → states 23% → venues 23% → the picked venue's ads
-       the remaining 29% (thumbnails, so widest) when there is room; stacked below that */
-    &__quarters {
-        @apply grid grid-cols-1 gap-5;
 
         @container dashboard (min-width: 72rem) {
-            @apply grid-cols-[minmax(0,25fr)_minmax(0,23fr)_minmax(0,23fr)_minmax(0,29fr)] gap-6;
+            @apply grid-cols-3;
         }
     }
 
-    /* A drill-down column in the Categories card: a rule above while stacked, on its
-       left once the four sit side by side */
-    &__quarter-split {
-        @apply flex min-w-0 flex-col gap-3 border-t border-surface-border pt-5;
-
-        @container dashboard (min-width: 72rem) {
-            @apply border-l border-t-0 pl-6 pt-0;
+    &__wide {
+        @container dashboard (min-width: 48rem) {
+            @apply col-span-2;
         }
     }
 
-    &__half {
-        @apply flex min-w-0 flex-col gap-3;
-    }
+    &__subheading {
+        @apply mb-2 mt-1 text-label font-semibold uppercase tracking-[0.14em] text-content-muted !font-mono;
 
-    /* The breakdown half (Ads → the picked ad's states, States → the picked state's ads) */
-    &__split {
-        @apply flex min-w-0 flex-col gap-3 border-t border-surface-border pt-5;
-
-        @container dashboard (min-width: 60rem) {
-            @apply border-l border-t-0 pl-6 pt-0;
+        &:not(:first-child) {
+            @apply mt-5;
         }
     }
 
-    &__split-title {
-        @apply flex min-w-0 items-baseline gap-1.5 text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
+    &__empty {
+        @apply py-6 text-center text-sm text-content-muted;
     }
 
-    /* The name inside a column title: same size and font as the title, bold, in the
-       accent color (case kept, so file names and IDs read as-is) */
-    &__split-name {
-        @apply min-w-0 truncate font-bold normal-case text-brand;
-    }
+    &__message {
+        @apply flex flex-col items-center gap-3 px-3 py-20 text-center text-status-crit;
 
-    /* Unknown-venues dialog */
-    &__unknown-intro {
-        @apply mb-4 text-sm text-content-secondary;
-    }
-
-    &__unknown-scroll {
-        @apply max-h-[50vh] overflow-auto border border-surface-border;
-    }
-
-    &__unknown-table {
-        @apply w-full text-left text-sm;
-
-        th {
-            @apply sticky top-0 border-b border-surface-border bg-surface-raised px-3 py-2 text-label font-semibold uppercase tracking-wider text-content-muted !font-mono;
-        }
-
-        td {
-            @apply border-b border-surface-border px-3 py-2 text-content-primary;
-        }
-
-        tbody tr:last-child td {
-            @apply border-b-0;
+        i {
+            @apply text-3xl text-content-muted;
         }
     }
 
-    &__unknown-num {
-        @apply text-right tabular-nums;
+    &__link {
+        @apply text-sm font-semibold text-brand underline;
+
+        &:hover {
+            @apply text-content-primary;
+        }
+    }
+}
+
+/* A headline number */
+.dashboard-tile {
+    @apply flex flex-col gap-1 border border-surface-border bg-surface-raised p-4 transition-colors;
+
+    &:is(a):hover {
+        @apply border-content-muted;
     }
 
-    &__unknown-id {
-        @apply inline-flex items-center gap-1 whitespace-nowrap font-medium;
+    &:is(a):focus-visible {
+        @apply border-brand outline-none;
     }
 
-    &__unknown-missing {
-        @apply text-status-warn;
+    &__label {
+        @apply flex items-center gap-2 text-label font-semibold uppercase tracking-[0.14em] text-content-secondary !font-mono;
+
+        i {
+            @apply text-xs text-brand;
+        }
     }
 
-    &__footnote {
-        @apply border-t border-surface-border pt-3 text-xs text-content-muted;
+    &__value {
+        @apply text-3xl font-bold tabular-nums text-content-primary;
+    }
+
+    &__note {
+        @apply flex items-center gap-1.5 text-xs text-content-muted;
+    }
+}
+
+/* Workflow: per category, a row of status cells with a share meter */
+.workflow {
+    @apply flex flex-col gap-5;
+
+    &__head {
+        @apply mb-2 flex items-baseline justify-between gap-3;
+    }
+
+    &__name {
+        @apply text-sm font-semibold text-content-primary;
+
+        &:hover {
+            @apply text-brand underline;
+        }
+    }
+
+    &__total {
+        @apply text-xs tabular-nums text-content-muted;
+    }
+
+    &__stages {
+        @apply grid grid-cols-2 gap-2;
+
+        @container dashboard (min-width: 40rem) {
+            @apply grid-cols-4;
+        }
+    }
+
+    &__stage {
+        @apply flex flex-col items-start gap-2 border border-surface-border p-3;
+    }
+
+    &__count {
+        @apply text-2xl font-bold tabular-nums text-content-primary;
+    }
+
+    /* Thin meter: the stage's share of the category */
+    &__meter {
+        @apply block h-1 w-full overflow-hidden bg-surface-border;
+    }
+
+    &__meter-fill {
+        @apply block h-full rounded-r bg-brand;
+    }
+
+    &__share {
+        @apply text-xs tabular-nums text-content-muted;
+    }
+}
+
+/* Uploads per week: one column per week, scale on the left */
+.weeks {
+    @apply grid gap-2;
+    grid-template-columns: auto minmax(0, 1fr);
+
+    &__summary {
+        @apply mb-3 text-sm text-content-secondary;
+
+        strong {
+            @apply text-content-primary;
+        }
+    }
+
+    &__axis {
+        @apply flex h-44 flex-col justify-between text-right text-micro tabular-nums text-content-muted;
+    }
+
+    &__plot {
+        @apply relative grid items-end;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    /* Recessive gridlines at the top and middle of the scale */
+    &__grid {
+        @apply pointer-events-none absolute inset-x-0 border-t border-dashed border-surface-border;
+
+        &--top {
+            @apply top-0;
+        }
+
+        &--mid {
+            top: 5.5rem;
+        }
+    }
+
+    &__column {
+        @apply flex flex-col items-stretch;
+    }
+
+    /* The hit target is the whole column height, wider than the bar */
+    &__slot {
+        @apply relative flex h-44 items-end justify-center border-b border-content-muted px-[1px];
+
+        &:hover .weeks__tooltip {
+            @apply visible opacity-100;
+        }
+
+        &:hover .weeks__bar {
+            @apply bg-brand-strong;
+        }
+    }
+
+    &__bar {
+        @apply block w-full max-w-10 rounded-t bg-brand transition-colors;
+        min-height: 2px;
+    }
+
+    &__column--current &__bar {
+        @apply bg-brand-strong;
+    }
+
+    &__tooltip {
+        @apply invisible absolute bottom-full left-1/2 z-10 mb-1 flex -translate-x-1/2 flex-col items-center whitespace-nowrap border border-surface-border bg-surface-base px-2 py-1 text-xs text-content-secondary opacity-0 transition-opacity;
+
+        strong {
+            @apply text-content-primary;
+        }
+
+        span {
+            @apply text-content-muted;
+        }
+    }
+
+    &__label {
+        @apply mt-1 h-4 whitespace-nowrap text-center text-micro text-content-muted;
+    }
+
+    &__column--current &__label {
+        @apply text-content-secondary;
+    }
+}
+
+/* Ranked bar list */
+.bars {
+    @apply flex flex-col gap-2;
+
+    &__row {
+        @apply grid items-center gap-3 text-sm;
+        grid-template-columns: 7.5rem minmax(0, 1fr) 2.5rem;
+    }
+
+    &__label {
+        @apply truncate text-content-secondary;
+    }
+
+    &__track {
+        @apply block h-2;
+    }
+
+    &__fill {
+        @apply block h-full rounded-r bg-brand;
+        min-width: 2px;
+    }
+
+    &__value {
+        @apply text-right tabular-nums text-content-primary;
+    }
+}
+
+/* Lists: waiting, latest uploads, latest comments */
+.dashboard-list {
+    @apply flex flex-col;
+
+    &__item {
+        @apply flex items-start justify-between gap-3 border-b border-surface-border py-2.5;
+
+        &:first-child {
+            @apply pt-0;
+        }
+
+        &:last-child {
+            @apply border-b-0 pb-0;
+        }
+
+        &--media {
+            @apply justify-start;
+        }
+    }
+
+    &__thumb {
+        @apply block w-16 shrink-0 overflow-hidden bg-surface-base;
+        aspect-ratio: 16 / 9;
+
+        img,
+        video {
+            @apply block h-full w-full object-cover;
+        }
+    }
+
+    &__main {
+        @apply flex min-w-0 flex-1 flex-col gap-0.5;
+    }
+
+    &__side {
+        @apply flex shrink-0 flex-col items-end gap-1;
+    }
+
+    &__title {
+        @apply truncate text-sm font-semibold text-content-primary;
+
+        &:hover {
+            @apply text-brand underline;
+        }
+    }
+
+    &__meta {
+        @apply truncate text-xs text-content-muted;
+    }
+
+    &__who {
+        @apply font-semibold text-content-secondary;
+    }
+
+    &__inline-link {
+        @apply text-content-secondary underline;
+
+        &:hover {
+            @apply text-brand;
+        }
+    }
+
+    &__quote {
+        @apply line-clamp-2 text-sm text-content-secondary;
     }
 }

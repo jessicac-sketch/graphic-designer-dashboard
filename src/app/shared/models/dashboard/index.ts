@@ -1,6 +1,7 @@
 export * from './dashboard-ad-sort-options.constant';
 export * from './dashboard-ad-sort.type';
 export * from './dashboard-all-time-option.constant';
+export * from './dashboard-axis-label-every.constant';
 export * from './dashboard-breakdown-view-options.constant';
 export * from './dashboard-breakdown-view.type';
 export * from './dashboard-category-sort-options.constant';

@@ -73,6 +73,31 @@
         }
     }
 
+    &__file-tools {
+        @apply flex shrink-0 items-center gap-3;
+    }
+
+    /* Rename: the name field with the fixed extension after it */
+    &__rename {
+        @apply flex flex-col gap-2;
+    }
+
+    &__rename-field {
+        @apply flex items-stretch border border-surface-border bg-surface-base transition-colors;
+
+        &:focus-within {
+            @apply border-brand;
+        }
+    }
+
+    &__rename-input {
+        @apply min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-content-primary outline-none;
+    }
+
+    &__extension {
+        @apply flex items-center border-l border-surface-border px-2 text-sm text-content-muted !font-mono;
+    }
+
     &__version {
         @apply shrink-0 border border-surface-border px-1.5 text-xs text-content-secondary !font-mono;
     }

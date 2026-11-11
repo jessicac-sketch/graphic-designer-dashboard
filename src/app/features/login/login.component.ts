@@ -107,17 +107,18 @@ export class LoginComponent {
         this.errorMessage.set(null);
 
         const { email, password } = this.form.getRawValue();
-        const success = await this.authService.login(email.trim(), password);
+        const user = await this.authService.login(email.trim(), password);
 
         this.isSubmitting.set(false);
 
-        if (!success) {
+        if (!user) {
             this.form.controls.password.reset();
             this.errorMessage.set('Invalid email or password.');
             return;
         }
 
-        void this.router.navigate(['/']);
+        // A temporary password (new user, or reset by an admin) is replaced first
+        void this.router.navigate([user.mustChangePassword ? '/change-password' : '/']);
     }
 
     /**
